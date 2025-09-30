@@ -71,70 +71,56 @@ def view_process(request, process_id):
     return render(request, 'automatizacion/view_process.html', context)
 
 def run_process(request, process_id):
-    """Ejecuta un proceso guardado - SISTEMA UNIFICADO DE LOGGING"""
+    """
+    Ejecuta un proceso guardado 
+    ✅ CORREGIDO: Elimina logging duplicado y usa solo el log del modelo MigrationProcess.run()
+    """
     process = get_object_or_404(MigrationProcess, pk=process_id)
     
-    # USAR SOLO UN SISTEMA DE LOGGING - ProcessTracker unificado
-    from .web_logger_optimized import registrar_proceso_web, finalizar_proceso_web
-    
-    # Datos adicionales para el log
-    datos_proceso = {
-        'process_id': process.id,
-        'process_name': process.name,
-        'source_type': process.source.source_type if process.source else 'unknown',
-        'target_table': getattr(process, 'target_table', 'DestinoAutomatizacion')
-    }
-    
-    # Iniciar SOLO UN logger unificado
-    tracker, proceso_id = registrar_proceso_web(
-        nombre_proceso=f"Ejecución proceso: {process.name}",
-        usuario=request.user,
-        datos_adicionales=datos_proceso
-    )
-    
     try:
-        print(f"🚀 Iniciando ejecución del proceso: {process.name}")
+        print(f"🚀 Iniciando ejecución del proceso: {process.name} (ID: {process.id})")
         
-        # Ejecutar el proceso (ahora con lógica real de inserción)
+        # ✅ CORRECCIÓN: Usar SOLO process.run() que ya maneja el logging correctamente
+        # Esto evita logs duplicados y asegura que MigrationProcessID sea correcto
         process.run()
-        
-        # Finalizar con éxito
-        if tracker:
-            finalizar_proceso_web(
-                tracker, 
-                usuario=request.user,
-                exito=True, 
-                detalles=f"Proceso '{process.name}' completado exitosamente. Datos insertados en DestinoAutomatizacion."
-            )
         
         messages.success(request, f'El proceso "{process.name}" se ha ejecutado correctamente y los datos se han guardado en DestinoAutomatizacion.')
         
     except Exception as e:
         print(f"❌ Error ejecutando proceso {process.name}: {str(e)}")
         
-        # Finalizar con error
-        if tracker:
-            finalizar_proceso_web(
-                tracker, 
-                usuario=request.user,
-                exito=False, 
-                error=e
-            )
-            
+        # ✅ CORRECCIÓN: El manejo de errores ya está en process.run() 
+        # No necesitamos manejo adicional aquí
         messages.error(request, f'Error al ejecutar el proceso: {str(e)}')
     
     return redirect('automatizacion:view_process', process_id=process.id)
 
 def delete_process(request, process_id):
-    """Elimina un proceso guardado"""
+    """Elimina un proceso guardado con confirmación"""
     process = get_object_or_404(MigrationProcess, pk=process_id)
     
     if request.method == 'POST':
-        process_name = process.name
-        process.delete()
-        messages.success(request, f'El proceso "{process_name}" ha sido eliminado.')
-        return redirect('automatizacion:list_processes')
-        
+        try:
+            process_name = process.name
+            process_id_deleted = process.id
+            
+            # Eliminar el proceso
+            process.delete()
+            
+            messages.success(
+                request, 
+                f'El proceso "{process_name}" (ID: {process_id_deleted}) ha sido eliminado exitosamente.'
+            )
+            return redirect('automatizacion:list_processes')
+            
+        except Exception as e:
+            messages.error(
+                request, 
+                f'Error al eliminar el proceso "{process.name}": {str(e)}'
+            )
+            return render(request, 'automatizacion/confirm_delete.html', {'process': process})
+    
+    # GET request - mostrar página de confirmación
     return render(request, 'automatizacion/confirm_delete.html', {'process': process})
 
 # Vistas para Excel/CSV
