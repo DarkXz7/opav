@@ -86,26 +86,30 @@ class ProcessTracker:
     
     def _obtener_parametros(self, parametros_adicionales=None):
         """
-        Genera el diccionario de parámetros con el historial incluido
+        Genera parámetros optimizados usando el nuevo sistema
         
         Args:
             parametros_adicionales (dict, optional): Parámetros adicionales
             
         Returns:
-            dict: Diccionario combinado de parámetros
+            str: JSON optimizado para ParametrosEntrada
         """
-        # Usar la versión string del UUID para JSON
-        proceso_id_str = str(self.proceso_id)
+        from .parametros_optimizer import optimizar_parametros_entrada
         
-        params = {
-            'proceso_unique_id': proceso_id_str,
-            'historial': self.historial
+        # Preparar datos base
+        datos_completos = {
+            'proceso_unique_id': str(self.proceso_id),
+            'process_name': self.nombre_proceso,
+            'timestamp_inicio': datetime.datetime.now().isoformat(),
+            'contexto': 'process_tracker'
         }
         
+        # Agregar parámetros adicionales si existen
         if parametros_adicionales:
-            params.update(parametros_adicionales)
+            datos_completos.update(parametros_adicionales)
         
-        return params
+        # Usar el optimizador para generar JSON conciso
+        return optimizar_parametros_entrada(datos_completos)
     
     def iniciar(self, parametros=None):
         """
@@ -125,18 +129,28 @@ class ProcessTracker:
         with transaction.atomic():
             # Crear UN SOLO registro en la base de datos que se actualizará durante todo el proceso
             print(f"DEBUG: Creando registro en BD para proceso '{self.nombre_proceso}' con ID {proceso_id_str}")
+            
+            # Obtener parámetros optimizados (ya viene como JSON string)
+            parametros_optimizados = self._obtener_parametros(parametros)
+            
+            # Extraer MigrationProcessID de los parámetros si existe
+            migration_process_id = None
+            if parametros and isinstance(parametros, dict):
+                migration_process_id = parametros.get('migration_process_id')
+            
             self._registro = self.ProcesoLog(
-                ProcesoID=proceso_id_str,  # Guardar el ProcesoID como string
+                ProcesoID=proceso_id_str,  # UUID único de esta ejecución específica
+                MigrationProcessID=migration_process_id,  # FK al proceso configurado (si aplica)
                 FechaEjecucion=datetime.datetime.now(),
                 Estado="Iniciando"[:20],  # Solo el estado, sin nombre del proceso
-                ParametrosEntrada=json.dumps(self._obtener_parametros(parametros)),
+                ParametrosEntrada=parametros_optimizados,  # JSON optimizado y conciso
                 DuracionSegundos=0,
                 MensajeError=None,
-                NombreProceso=self.nombre_proceso[:255]  # Guardar el nombre del proceso
+                NombreProceso=self.nombre_proceso[:255]  # Nombre del proceso del frontend
             )
             print(f"DEBUG: Guardando registro usando base de datos 'logs'...")
             self._registro.save(using='logs')
-            print(f"DEBUG: Registro guardado exitosamente")
+            print(f"DEBUG: Registro guardado exitosamente con parámetros optimizados")
         
         return proceso_id_str
     

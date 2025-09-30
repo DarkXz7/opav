@@ -114,18 +114,33 @@ class MigrationProcess(models.Model):
     def run(self):
         """
         Ejecuta el proceso de migración guardado - PROCESA DATOS REALES DEL ORIGEN
+        ✅ CORREGIDO: Usa ProcessTracker para generar IDs consistentes entre ProcesoLog y tabla dinámica
         """
         from .data_transfer_service import data_transfer_service
+        from .logs.process_tracker import ProcessTracker
         import json
-        import uuid
         
         self.status = 'running'
         self.last_run = timezone.now()
         self.save()
         
+        # CORRECCIÓN 1: Usar ProcessTracker para generar UUID único y crear log en ProcesoLog
+        tracker = ProcessTracker(self.name)
+        
         try:
-            # Generar un proceso_id único para esta ejecución
-            proceso_id = str(uuid.uuid4())
+            # CORRECCIÓN 2: Iniciar tracking con MigrationProcessID para relación correcta
+            parametros_proceso = {
+                'migration_process_id': self.id,  # FK al proceso configurado
+                'source_type': self.source.source_type if self.source else 'unknown',
+                'source_id': self.source.id if self.source else None,
+                'selected_tables': self.selected_tables,
+                'selected_sheets': self.selected_sheets,
+                'selected_columns': self.selected_columns,
+                'target_db_name': self.target_db_name
+            }
+            
+            # Iniciar proceso y obtener UUID que se usará en ambas bases de datos
+            proceso_id = tracker.iniciar(parametros_proceso)
             
             # Obtener datos reales del origen según el tipo de fuente
             tiempo_inicio = timezone.now()
@@ -135,6 +150,10 @@ class MigrationProcess(models.Model):
             
             # Calcular estadísticas de los datos extraídos
             registros_procesados = len(datos_origen) if isinstance(datos_origen, list) else 1
+            
+            # Actualizar estado del proceso
+            tracker.actualizar_estado('PROCESANDO_DATOS', 
+                f'Extrayendo {registros_procesados} registros de {self.source.source_type if self.source else "origen"}')
             
             # Crear resumen de los datos procesados (NO los datos completos)
             resumen_procesamiento = self._crear_resumen_datos(
@@ -157,10 +176,13 @@ class MigrationProcess(models.Model):
                 'extraction_duration_seconds': duracion_extraccion
             }
             
-            # Insertar el RESUMEN (no los datos completos) en tabla dinámica específica del proceso
+            # Actualizar estado antes de transferencia
+            tracker.actualizar_estado('TRANSFIRIENDO', 'Insertando datos en tabla dinámica')
+            
+            # CORRECCIÓN 3: Usar el mismo proceso_id del tracker en la transferencia
             success, result_info = data_transfer_service.transfer_to_dynamic_table(
                 process_name=self.name,
-                proceso_id=proceso_id,
+                proceso_id=proceso_id,  # ✅ Mismo UUID generado por ProcessTracker
                 datos_procesados=resumen_procesamiento,
                 usuario_responsable='sistema_automatizado',
                 metadata=metadata,
@@ -174,18 +196,31 @@ class MigrationProcess(models.Model):
                 self.status = 'completed'
                 table_name = result_info.get('table_name', 'Desconocida')
                 resultado_id = result_info.get('resultado_id', 'N/A')
+                
+                # CORRECCIÓN 4: Finalizar proceso exitosamente en ProcesoLog
+                detalles_exito = f"Tabla: {table_name}, ResultadoID: {resultado_id}, Registros: {registros_procesados}"
+                tracker.finalizar_exito(detalles_exito)
+                
                 print(f"✅ Proceso '{self.name}' ejecutado exitosamente.")
                 print(f"   📋 Tabla específica: '{table_name}'")
                 print(f"   📊 Registros procesados: {registros_procesados}")
                 print(f"   🆔 ResultadoID: {resultado_id}")
+                print(f"   🔗 ProcesoID (consistente): {proceso_id}")
             else:
                 self.status = 'failed'
                 error_msg = result_info.get('error', 'Error desconocido')
                 table_name = result_info.get('table_name', 'No determinada')
-                raise Exception(f"Error en transferencia a tabla '{table_name}': {error_msg}")
+                
+                # CORRECCIÓN 5: Registrar error en ProcessTracker antes de lanzar excepción
+                error_completo = f"Error en transferencia a tabla '{table_name}': {error_msg}"
+                tracker.finalizar_error(Exception(error_completo))
+                raise Exception(error_completo)
                 
         except Exception as e:
             self.status = 'failed'
+            # CORRECCIÓN 6: Asegurar que el error se registre en ProcesoLog
+            if 'tracker' in locals():
+                tracker.finalizar_error(e)
             print(f"❌ Error ejecutando proceso {self.name}: {str(e)}")
             raise e
         finally:

@@ -399,6 +399,7 @@ class DataTransferService:
             
             transfer_data = {
                 'ProcesoID': proceso_id,
+                'NombreProceso': process_name,  # NUEVO: Nombre del proceso del frontend
                 'DatosProcesados': datos_json,
                 'UsuarioResponsable': usuario_responsable,
                 'EstadoProceso': kwargs.get('estado_proceso', 'COMPLETADO'),

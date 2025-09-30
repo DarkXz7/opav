@@ -154,12 +154,13 @@ class DynamicTableManager:
             from django.db import connections
             cursor = connections[self.database_alias].cursor()
             
-            # SQL para crear tabla con la misma estructura que ResultadosProcesados
+            # SQL para crear tabla con estructura mejorada que incluye NombreProceso
             # Usar formato de parámetros compatible con Django (%s en lugar de ?)
             create_sql = f"""
             CREATE TABLE [{table_name}] (
                 ResultadoID INT IDENTITY(1,1) PRIMARY KEY,
                 ProcesoID NVARCHAR(36) NOT NULL,
+                NombreProceso NVARCHAR(255) NOT NULL,
                 FechaRegistro DATETIME2 DEFAULT GETDATE(),
                 DatosProcesados NTEXT,
                 UsuarioResponsable NVARCHAR(100),
@@ -177,11 +178,13 @@ class DynamicTableManager:
             # Crear índices por separado
             index_sql1 = f"CREATE INDEX IX_{table_name}_ProcesoID ON [{table_name}] (ProcesoID)"
             index_sql2 = f"CREATE INDEX IX_{table_name}_FechaRegistro ON [{table_name}] (FechaRegistro)"
+            index_sql3 = f"CREATE INDEX IX_{table_name}_NombreProceso ON [{table_name}] (NombreProceso)"
             
             cursor.execute(index_sql1)
             cursor.execute(index_sql2)
+            cursor.execute(index_sql3)
             
-            logger.info(f"Tabla '{table_name}' creada exitosamente")
+            logger.info(f"Tabla '{table_name}' creada exitosamente con 3 índices")
             return True
                 
         except Exception as e:
@@ -290,15 +293,16 @@ class DynamicTableManager:
             from django.db import connections
             cursor = connections[self.database_alias].cursor()
             
-            # Preparar datos para inserción
+            # Preparar datos para inserción (INCLUYE NombreProceso)
             columns = [
-                'ProcesoID', 'DatosProcesados', 'UsuarioResponsable',
+                'ProcesoID', 'NombreProceso', 'DatosProcesados', 'UsuarioResponsable',
                 'EstadoProceso', 'TipoOperacion', 'RegistrosAfectados',
                 'TiempoEjecucion', 'MetadatosProceso'
             ]
             
             values = [
                 data.get('ProcesoID'),
+                data.get('NombreProceso', 'Proceso sin nombre'),  # NUEVO CAMPO
                 data.get('DatosProcesados'),
                 data.get('UsuarioResponsable'),
                 data.get('EstadoProceso', 'COMPLETADO'),
@@ -322,8 +326,8 @@ class DynamicTableManager:
             logger.info(f"Insertando en tabla '{table_name}'...")
             cursor.execute(insert_sql, values)
             
-            # Obtener el último ID insertado
-            cursor.execute("SELECT SCOPE_IDENTITY()")
+            # Obtener el último ID insertado (corregido para funcionar con Django)
+            cursor.execute("SELECT @@IDENTITY")
             row = cursor.fetchone()
             resultado_id = int(row[0]) if row and row[0] else None
             
