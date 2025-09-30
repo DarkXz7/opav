@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}Nuevo Proceso - Sistema de Migración de Datos{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'automatizacion:index' %}">Inicio</a></li>
+                <li class="breadcrumb-item active">Nuevo Proceso</li>
+            </ol>
+        </nav>
+        
+        <h2 class="mb-4"><i class="fas fa-plus-circle me-2"></i>Nuevo Proceso de Migración</h2>
+        
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Selecciona el tipo de origen de datos</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <a href="{% url 'automatizacion:upload_excel' %}" class="text-decoration-none">
+                            <div class="source-type-card excel">
+                                <i class="fas fa-file-excel"></i>
+                                <h4>Excel (.xlsx)</h4>
+                                <p>Importa datos desde hojas de Excel</p>
+                                <button class="btn btn-light mt-2">Seleccionar</button>
+                            </div>
+                        </a>
+                    </div>
+                    
+                    <div class="col-md-4 mb-3">
+                        <a href="{% url 'automatizacion:upload_excel' %}?type=csv" class="text-decoration-none">
+                            <div class="source-type-card csv">
+                                <i class="fas fa-file-csv"></i>
+                                <h4>CSV</h4>
+                                <p>Importa datos desde archivos CSV</p>
+                                <button class="btn btn-light mt-2">Seleccionar</button>
+                            </div>
+                        </a>
+                    </div>
+                    
+                    <div class="col-md-4 mb-3">
+                        <a href="{% url 'automatizacion:connect_sql' %}" class="text-decoration-none">
+                            <div class="source-type-card sql">
+                                <i class="fas fa-database"></i>
+                                <h4>SQL Server</h4>
+                                <p>Conecta a una base de datos SQL</p>
+                                <button class="btn btn-light mt-2">Seleccionar</button>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if connections %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Conexiones guardadas</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for connection in connections %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ connection.name }}</h5>
+                                    <p class="card-text">
+                                        <strong>Servidor:</strong> {{ connection.server }}<br>
+                                        <strong>Base de datos:</strong> {{ connection.database }}<br>
+                                        <strong>Último uso:</strong> {% if connection.last_used %}{{ connection.last_used|date:"d/m/Y H:i" }}{% else %}Nunca{% endif %}
+                                    </p>
+                                    <a href="{% url 'automatizacion:list_sql_tables' connection.id %}" class="btn btn-primary">
+                                        <i class="fas fa-link me-1"></i>Conectar
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+
+{% block title %}Detalles del Proceso - Sistema de Migración de Datos{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'automatizacion:index' %}">Inicio</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'automatizacion:list_processes' %}">Procesos</a></li>
+                <li class="breadcrumb-item active">{{ process.name }}</li>
+            </ol>
+        </nav>
+        
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fas fa-tasks me-2"></i>{{ process.name }}</h2>
+            <div>
+                <a href="{% url 'automatizacion:run_process' process.id %}" class="btn btn-success">
+                    <i class="fas fa-play me-2"></i>Ejecutar Proceso
+                </a>
+                <a href="{% url 'automatizacion:delete_process' process.id %}" class="btn btn-outline-danger ms-2">
+                    <i class="fas fa-trash me-2"></i>Eliminar
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Información General</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Creado:</strong> {{ process.created_at|date:"d/m/Y H:i" }}</p>
+                <p><strong>Última ejecución:</strong> 
+                    {% if process.last_run %}
+                        {{ process.last_run|date:"d/m/Y H:i" }}
+                    {% else %}
+                        Nunca
+                    {% endif %}
+                </p>
+                <p><strong>Estado:</strong> 
+                    <span class="badge {% if process.status == 'completed' %}bg-success{% elif process.status == 'failed' %}bg-danger{% elif process.status == 'running' %}bg-warning{% else %}bg-secondary{% endif %}">
+                        {{ process.get_status_display }}
+                    </span>
+                </p>
+                <p><strong>Tipo de origen:</strong> {{ process.source.get_source_type_display }}</p>
+                <p><strong>Base de datos destino:</strong> {{ process.target_db_name }}</p>
+                {% if process.description %}
+                    <div class="mt-3">
+                        <h6>Descripción:</h6>
+                        <p class="text-muted">{{ process.description }}</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Origen de Datos</h5>
+            </div>
+            <div class="card-body">
+                {% if process.source.source_type == 'excel' or process.source.source_type == 'csv' %}
+                    <p><strong>Archivo:</strong> {{ process.source.name }}</p>
+                    {% if process.selected_sheets %}
+                        <p><strong>Hojas seleccionadas:</strong></p>
+                        <ul>
+                            {% for sheet in process.selected_sheets %}
+                                <li>{{ sheet }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                {% else %}
+                    <p><strong>Conexión:</strong> {{ connection.name }}</p>
+                    <p><strong>Servidor:</strong> {{ connection.server }}</p>
+                    <p><strong>Base de datos:</strong> {{ connection.database }}</p>
+                    {% if process.selected_tables %}
+                        <p><strong>Tablas seleccionadas:</strong></p>
+                        <ul>
+                            {% for table in process.selected_tables %}
+                                <li>{{ table }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Columnas Seleccionadas</h5>
+            </div>
+            <div class="card-body">
+                {% if process.selected_columns %}
+                    <div class="accordion" id="columnsAccordion">
+                        {% for item_name, columns in process.selected_columns.items %}
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="heading{{ forloop.counter }}">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                            data-bs-target="#collapse{{ forloop.counter }}" 
+                                            aria-expanded="false" aria-controls="collapse{{ forloop.counter }}">
+                                        {{ item_name }}
+                                    </button>
+                                </h2>
+                                <div id="collapse{{ forloop.counter }}" class="accordion-collapse collapse" 
+                                     aria-labelledby="heading{{ forloop.counter }}" data-bs-parent="#columnsAccordion">
+                                    <div class="accordion-body">
+                                        <div class="row">
+                                            {% for column in columns %}
+                                                <div class="col-md-4 mb-2">
+                                                    <span class="badge bg-light text-dark">{{ column }}</span>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-warning">
+                        No hay columnas seleccionadas.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Historial de Ejecuciones</h5>
+            </div>
+            <div class="card-body">
+                {% if logs %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Duración</th>
+                                    <th>Filas</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for log in logs %}
+                                    <tr>
+                                        <td>{{ log.start_time|date:"d/m/Y H:i:s" }}</td>
+                                        <td>
+                                            {% if log.end_time %}
+                                                {{ log.start_time|timesince:log.end_time }}
+                                            {% else %}
+                                                En proceso...
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ log.rows_processed }}</td>
+                                        <td>
+                                            <span class="badge {% if log.status == 'completed' %}bg-success{% elif log.status == 'failed' %}bg-danger{% else %}bg-warning{% endif %}">
+                                                {{ log.status }}
+                                            </span>
+                                            {% if log.error_message %}
+                                                <button class="btn btn-sm btn-outline-danger ms-2" 
+                                                        data-bs-toggle="tooltip" 
+                                                        title="{{ log.error_message }}">
+                                                    <i class="fas fa-exclamation-circle"></i>
+                                                </button>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info mb-0">
+                        Este proceso no se ha ejecutado aún.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Inicializar tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
+    });
+</script>
+{% endblock %}

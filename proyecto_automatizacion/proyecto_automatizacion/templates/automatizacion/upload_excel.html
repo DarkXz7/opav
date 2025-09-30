@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}Cargar Archivo - Sistema de Migración de Datos{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'automatizacion:index' %}">Inicio</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'automatizacion:new_process' %}">Nuevo Proceso</a></li>
+                <li class="breadcrumb-item active">Cargar Archivo</li>
+            </ol>
+        </nav>
+        
+        <h2 class="mb-4">
+            <i class="fas fa-file-upload me-2"></i>
+            {% if request.GET.type == 'csv' %}
+                Cargar Archivo CSV
+            {% else %}
+                Cargar Archivo Excel
+            {% endif %}
+        </h2>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card">
+            <div class="card-header">
+                <div class="steps">
+                    <div class="step active">
+                        <div class="step-icon">1</div>
+                        <div class="step-label">Cargar archivo</div>
+                    </div>
+                    <div class="step">
+                        <div class="step-icon">2</div>
+                        <div class="step-label">
+                            {% if request.GET.type == 'csv' %}
+                                Seleccionar columnas
+                            {% else %}
+                                Seleccionar hojas
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-icon">3</div>
+                        <div class="step-label">Seleccionar columnas</div>
+                    </div>
+                    <div class="step">
+                        <div class="step-icon">4</div>
+                        <div class="step-label">Guardar proceso</div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <form action="{% url 'automatizacion:upload_excel' %}" method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    
+                    <div class="mb-4">
+                        <div class="text-center mb-3">
+                            {% if request.GET.type == 'csv' %}
+                                <i class="fas fa-file-csv text-warning fa-5x"></i>
+                            {% else %}
+                                <i class="fas fa-file-excel text-success fa-5x"></i>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="file" class="form-label">
+                                Selecciona un archivo 
+                                {% if request.GET.type == 'csv' %}
+                                    CSV
+                                {% else %}
+                                    Excel (.xlsx)
+                                {% endif %}
+                            </label>
+                            <input type="file" class="form-control" id="file" name="file" required
+                                {% if request.GET.type == 'csv' %}
+                                    accept=".csv"
+                                {% else %}
+                                    accept=".xlsx,.xls"
+                                {% endif %}>
+                            <div class="invalid-feedback">
+                                Por favor selecciona un archivo.
+                            </div>
+                        </div>
+                        
+                        <input type="hidden" name="file_type" value="{% if request.GET.type == 'csv' %}csv{% else %}excel{% endif %}">
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-upload me-2"></i>Cargar Archivo
+                        </button>
+                        <a href="{% url 'automatizacion:new_process' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Volver
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Validación del formulario
+    (function () {
+        'use strict'
+        
+        // Fetch all forms we want to apply custom validation to
+        var forms = document.querySelectorAll('.needs-validation')
+        
+        // Loop over them and prevent submission
+        Array.prototype.slice.call(forms)
+            .forEach(function (form) {
+                form.addEventListener('submit', function (event) {
+                    if (!form.checkValidity()) {
+                        event.preventDefault()
+                        event.stopPropagation()
+                    }
+                    
+                    form.classList.add('was-validated')
+                }, false)
+            })
+    })()
+</script>
+{% endblock %}

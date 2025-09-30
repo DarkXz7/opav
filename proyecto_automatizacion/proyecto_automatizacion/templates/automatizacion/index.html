@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block title %}Inicio - Sistema de Migración de Datos{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <h1 class="display-4 mb-4">Sistema de Migración de Datos</h1>
+                <p class="lead mb-4">
+                    Herramienta flexible para importar datos desde múltiples fuentes 
+                    como Excel, CSV y SQL Server, con selección granular de tablas y columnas.
+                </p>
+                <div class="mt-4">
+                    <a href="{% url 'automatizacion:new_process' %}" class="btn btn-primary btn-lg px-4">
+                        <i class="fas fa-plus-circle me-2"></i>Nuevo Proceso
+                    </a>
+                    <a href="{% url 'automatizacion:list_processes' %}" class="btn btn-outline-primary btn-lg px-4 ms-3">
+                        <i class="fas fa-list me-2"></i>Ver Procesos Guardados
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-history me-2"></i>Procesos Recientes</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_processes %}
+                    <div class="list-group">
+                        {% for process in recent_processes %}
+                            <a href="{% url 'automatizacion:view_process' process.id %}" class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">{{ process.name }}</h6>
+                                    <small class="text-muted">{{ process.created_at|date:"d/m/Y H:i" }}</small>
+                                </div>
+                                <small class="d-block">
+                                    <span class="badge bg-info">{{ process.source.get_source_type_display }}</span>
+                                    <span class="badge {% if process.status == 'completed' %}bg-success{% elif process.status == 'failed' %}bg-danger{% else %}bg-secondary{% endif %}">
+                                        {{ process.get_status_display }}
+                                    </span>
+                                </small>
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-info mb-0">
+                        No hay procesos guardados. <a href="{% url 'automatizacion:new_process' %}">Crea uno nuevo</a>.
+                    </div>
+                {% endif %}
+            </div>
+            <div class="card-footer text-center">
+                <a href="{% url 'automatizacion:list_processes' %}" class="btn btn-sm btn-outline-primary">
+                    Ver todos los procesos
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-server me-2"></i>Conexiones Guardadas</h5>
+            </div>
+            <div class="card-body">
+                {% if saved_connections %}
+                    <div class="list-group">
+                        {% for connection in saved_connections %}
+                            <a href="{% url 'automatizacion:view_connection' connection.id %}" class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">{{ connection.name }}</h6>
+                                    <small class="text-muted">Último uso: {% if connection.last_used %}{{ connection.last_used|date:"d/m/Y H:i" }}{% else %}Nunca{% endif %}</small>
+                                </div>
+                                <small class="text-muted">{{ connection.server }}/{{ connection.database }}</small>
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-info mb-0">
+                        No hay conexiones guardadas. <a href="{% url 'automatizacion:connect_sql' %}">Crea una nueva</a>.
+                    </div>
+                {% endif %}
+            </div>
+            <div class="card-footer text-center">
+                <a href="{% url 'automatizacion:connect_sql' %}" class="btn btn-sm btn-outline-primary">
+                    Nueva conexión
+                </a>
+                <a href="{% url 'automatizacion:list_connections' %}" class="btn btn-sm btn-outline-secondary ms-2">
+                    Ver todas
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Acerca del Sistema</h5>
+            </div>
+            <div class="card-body">
+                <h4>Características principales</h4>
+                <div class="row mt-3">
+                    <div class="col-md-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <div class="text-center mb-3">
+                                    <i class="fas fa-file-excel text-success fa-3x"></i>
+                                </div>
+                                <h5 class="card-title text-center">Archivos Excel/CSV</h5>
+                                <ul class="list-unstyled">
+                                    <li><i class="fas fa-check-circle text-success me-2"></i>Selección de hojas específicas</li>
+                                    <li><i class="fas fa-check-circle text-success me-2"></i>Vista previa de datos</li>
+                                    <li><i class="fas fa-check-circle text-success me-2"></i>Selección de columnas</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <div class="text-center mb-3">
+                                    <i class="fas fa-database text-primary fa-3x"></i>
+                                </div>
+                                <h5 class="card-title text-center">SQL Server</h5>
+                                <ul class="list-unstyled">
+                                    <li><i class="fas fa-check-circle text-success me-2"></i>Conexión segura</li>
+                                    <li><i class="fas fa-check-circle text-success me-2"></i>Exploración de tablas</li>
+                                    <li><i class="fas fa-check-circle text-success me-2"></i>Selección de columnas</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <div class="text-center mb-3">
+                                    <i class="fas fa-sync-alt text-warning fa-3x"></i>
+                                </div>
+                                <h5 class="card-title text-center">Automatización</h5>
+                                <ul class="list-unstyled">
+                                    <li><i class="fas fa-check-circle text-success me-2"></i>Guardar configuraciones</li>
+                                    <li><i class="fas fa-check-circle text-success me-2"></i>Ejecutar procesos guardados</li>
+                                    <li><i class="fas fa-check-circle text-success me-2"></i>Historiales de ejecución</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

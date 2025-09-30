@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+
+{% block title %}Selección de Tablas SQL - Sistema de Migración de Datos{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'automatizacion:index' %}">Inicio</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'automatizacion:new_process' %}">Nuevo Proceso</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'automatizacion:connect_sql' %}">Conectar a SQL</a></li>
+                <li class="breadcrumb-item active">Seleccionar Tablas</li>
+            </ol>
+        </nav>
+        
+        <h2 class="mb-4"><i class="fas fa-table me-2"></i>Seleccionar Tablas SQL</h2>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <div class="steps">
+                    <div class="step complete">
+                        <div class="step-icon"><i class="fas fa-check"></i></div>
+                        <div class="step-label">Conexión</div>
+                    </div>
+                    <div class="step active">
+                        <div class="step-icon">2</div>
+                        <div class="step-label">Seleccionar tablas</div>
+                    </div>
+                    <div class="step">
+                        <div class="step-icon">3</div>
+                        <div class="step-label">Seleccionar columnas</div>
+                    </div>
+                    <div class="step">
+                        <div class="step-icon">4</div>
+                        <div class="step-label">Guardar proceso</div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info mb-4">
+                    <strong>Conexión:</strong> {{ connection.name }} - {{ connection.server }}/{{ connection.database }}
+                </div>
+                
+                <h4 class="mb-3">Tablas disponibles</h4>
+                <p>Selecciona las tablas que deseas importar:</p>
+                
+                <form id="tableSelectionForm">
+                    <input type="hidden" id="sourceId" value="{{ source.id }}">
+                    
+                    <div class="mb-3">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-search"></i></span>
+                            <input type="text" class="form-control" id="tableSearch" placeholder="Buscar tablas...">
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-hover table-bordered" id="tablesTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 5%">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="selectAll">
+                                            <label class="form-check-label" for="selectAll"></label>
+                                        </div>
+                                    </th>
+                                    <th>Esquema</th>
+                                    <th>Nombre de tabla</th>
+                                    <th style="width: 20%">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for table in tables %}
+                                <tr>
+                                    <td>
+                                        <div class="form-check">
+                                            <input class="form-check-input table-checkbox" type="checkbox" id="table{{ forloop.counter }}" name="tables" value="{{ table.full_name }}">
+                                            <label class="form-check-label" for="table{{ forloop.counter }}"></label>
+                                        </div>
+                                    </td>
+                                    <td>{{ table.schema }}</td>
+                                    <td>{{ table.name }}</td>
+                                    <td>
+                                        {% if table.full_name %}
+                                            <a href="{% url 'automatizacion:list_sql_columns' connection.id table.full_name %}" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-columns me-1"></i>Ver columnas
+                                            </a>
+                                        {% else %}
+                                            <button class="btn btn-sm btn-outline-secondary" disabled title="Nombre de tabla no disponible">
+                                                <i class="fas fa-exclamation-circle me-1"></i>No disponible
+                                            </button>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="alert alert-warning mt-3">
+                        <i class="fas fa-info-circle me-2"></i>Para seleccionar columnas específicas, haz clic en "Ver columnas" en cada tabla.
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{% url 'automatizacion:connect_sql' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Atrás
+                        </a>
+                        <button type="button" id="continueButton" class="btn btn-primary" disabled>
+                            Continuar<i class="fas fa-arrow-right ms-2"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para nombre del proceso -->
+<div class="modal fade" id="processNameModal" tabindex="-1" aria-labelledby="processNameModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="processNameModalLabel">Guardar Proceso</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="processName" class="form-label">Nombre del proceso</label>
+                    <input type="text" class="form-control" id="processName" placeholder="Mi proceso de importación">
+                </div>
+                <div class="mb-3">
+                    <label for="processDescription" class="form-label">Descripción (opcional)</label>
+                    <textarea class="form-control" id="processDescription" rows="3"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" id="saveProcessButton" class="btn btn-primary">Guardar Proceso</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Filtro de búsqueda
+        $("#tableSearch").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#tablesTable tbody tr").filter(function() {
+                $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+            });
+        });
+        
+        // Seleccionar/deseleccionar todo
+        $('#selectAll').change(function() {
+            $('.table-checkbox').prop('checked', $(this).prop('checked'));
+            updateContinueButton();
+        });
+        
+        // Actualizar botón "Continuar" según selección
+        $('.table-checkbox').change(function() {
+            updateContinueButton();
+        });
+        
+        function updateContinueButton() {
+            if ($('.table-checkbox:checked').length > 0) {
+                $('#continueButton').prop('disabled', false);
+            } else {
+                $('#continueButton').prop('disabled', true);
+            }
+        }
+        
+        // Botón continuar
+        $('#continueButton').click(function() {
+            // Abrir modal para nombre del proceso
+            $('#processNameModal').modal('show');
+        });
+        
+        // Guardar proceso
+        $('#saveProcessButton').click(function() {
+            const processName = $('#processName').val().trim();
+            if (!processName) {
+                alert('Por favor ingrese un nombre para el proceso');
+                return;
+            }
+            
+            // Recopilar tablas seleccionadas
+            const selectedTables = [];
+            $('.table-checkbox:checked').each(function() {
+                selectedTables.push($(this).val());
+            });
+            
+            // Datos del proceso
+            const processData = {
+                name: processName,
+                description: $('#processDescription').val(),
+                source_id: $('#sourceId').val(),
+                selected_tables: selectedTables,
+                selected_columns: {} // Se llenará en el siguiente paso
+            };
+            
+            // Enviar datos al servidor
+            $.ajax({
+                url: '{% url "automatizacion:save_process" %}',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(processData),
+                success: function(response) {
+                    if (response.success) {
+                        // Redirigir a primera tabla para seleccionar columnas
+                        // Construimos la URL manualmente ya que la tabla seleccionada viene de JavaScript
+                        window.location.href = '/automatizacion/sql/connection/' + 
+                            {{ connection.id }} + '/table/' + selectedTables[0] + 
+                            '/columns/?process_id=' + response.process_id;
+                    } else {
+                        alert('Error al guardar el proceso: ' + response.error);
+                    }
+                },
+                error: function() {
+                    alert('Error al comunicarse con el servidor.');
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

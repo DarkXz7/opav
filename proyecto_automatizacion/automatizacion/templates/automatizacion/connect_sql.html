@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Conectar a SQL Server{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row mb-4">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'automatizacion:index' %}">Inicio</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'automatizacion:new_process' %}">Nuevo Proceso</a></li>
+                    <li class="breadcrumb-item active">Conectar a SQL Server</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col">
+            <h1 class="h3">Conectar a Servidor SQL Server</h1>
+            <p class="text-muted">Proporcione los datos de conexión al servidor. Posteriormente podrá seleccionar la base de datos.</p>
+        </div>
+    </div>
+
+    {% if messages %}
+    <div class="row mb-3">
+        <div class="col">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row">
+        <div class="col-md-8 col-lg-6">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h2 class="h5 mb-0">Información de Conexión</h2>
+                </div>
+                <div class="card-body">
+                    <form action="{% url 'automatizacion:connect_sql' %}" method="post">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Nombre de la conexión</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                            <small class="form-text text-muted">Un nombre descriptivo para identificar esta conexión</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="server" class="form-label">Servidor</label>
+                            <input type="text" class="form-control" id="server" name="server" placeholder="ejemplo.database.windows.net" required>
+                            <small class="form-text text-muted">Nombre o dirección IP del servidor SQL</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="port" class="form-label">Puerto</label>
+                            <input type="number" class="form-control" id="port" name="port" value="1433">
+                            <small class="form-text text-muted">Puerto de conexión SQL Server (por defecto 1433)</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Usuario</label>
+                            <input type="text" class="form-control" id="username" name="username" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Contraseña</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-database me-1"></i> Conectar al Servidor
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer">
+                    <small class="text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Las credenciales de conexión se almacenan de forma segura y solo se utilizan para esta aplicación.
+                    </small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 col-lg-6">
+            <div class="card mb-3">
+                <div class="card-header bg-light">
+                    <h2 class="h5 mb-0">Conexiones Guardadas</h2>
+                </div>
+                <div class="card-body">
+                    <a href="{% url 'automatizacion:list_connections' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-list me-1"></i> Ver Conexiones Guardadas
+                    </a>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h2 class="h5 mb-0">Ayuda</h2>
+                </div>
+                <div class="card-body">
+                    <p><strong>¿Cómo conectarse a SQL Server?</strong></p>
+                    <ul>
+                        <li>Asegúrese de que el servidor SQL Server permite conexiones remotas</li>
+                        <li>Verifique que el firewall no esté bloqueando el puerto SQL Server</li>
+                        <li>El usuario debe tener permisos para listar bases de datos y acceder a ellas</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

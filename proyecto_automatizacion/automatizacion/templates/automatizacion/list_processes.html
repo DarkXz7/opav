@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Procesos Guardados{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-tasks me-2"></i>Procesos Guardados</h1>
+        <a href="{% url 'automatizacion:new_process' %}" class="btn btn-primary">
+            <i class="fas fa-plus-circle me-2"></i>Nuevo Proceso
+        </a>
+    </div>
+
+    {% if messages %}
+    <div class="row">
+        <div class="col">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row">
+        <div class="col">
+            <div class="card shadow-sm">
+                <div class="card-body p-0">
+                    {% if processes %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Fuente</th>
+                                    <th>Tabla Destino</th>
+                                    <th>Fecha Creación</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for process in processes %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'automatizacion:view_process' process_id=process.id %}">
+                                            {{ process.name }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        {% if process.source.source_type == 'excel' %}
+                                            <span class="badge bg-success">Excel</span>
+                                        {% elif process.source.source_type == 'csv' %}
+                                            <span class="badge bg-warning">CSV</span>
+                                        {% elif process.source.source_type == 'sql' %}
+                                            <span class="badge bg-info">SQL</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{{ process.source.source_type }}</span>
+                                        {% endif %}
+                                        {{ process.source.name }}
+                                    </td>
+                                    <td>{{ process.target_table }}</td>
+                                    <td>{{ process.created_at|date:"j M Y, H:i" }}</td>
+                                    <td>
+                                        {% if process.latest_log %}
+                                            {% if process.latest_log.status == 'completed' %}
+                                                <span class="badge bg-success">Completado</span>
+                                            {% elif process.latest_log.status == 'failed' %}
+                                                <span class="badge bg-danger">Error</span>
+                                            {% elif process.latest_log.status == 'started' %}
+                                                <span class="badge bg-warning">En Proceso</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">{{ process.latest_log.status }}</span>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="badge bg-secondary">No ejecutado</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <a href="{% url 'automatizacion:view_process' process_id=process.id %}" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{% url 'automatizacion:run_process' process_id=process.id %}" class="btn btn-sm btn-outline-success">
+                                                <i class="fas fa-play"></i>
+                                            </a>
+                                            <a href="{% url 'automatizacion:delete_process' process_id=process.id %}" class="btn btn-sm btn-outline-danger">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info m-3">
+                        No hay procesos guardados. <a href="{% url 'automatizacion:new_process' %}">Crear un nuevo proceso</a>.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

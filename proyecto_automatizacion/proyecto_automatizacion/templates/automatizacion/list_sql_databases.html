@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}Bases de Datos SQL - Sistema de Migración de Datos{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'automatizacion:index' %}">Inicio</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'automatizacion:list_connections' %}">Conexiones</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'automatizacion:view_connection' connection.id %}">{{ connection.name }}</a></li>
+                <li class="breadcrumb-item active">Bases de Datos</li>
+            </ol>
+        </nav>
+        
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fas fa-database me-2"></i>Bases de Datos Disponibles</h2>
+            <div>
+                <a href="{% url 'automatizacion:connect_sql' %}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Nueva Conexión
+                </a>
+                <a href="{% url 'automatizacion:view_connection' connection.id %}" class="btn btn-outline-secondary ms-2">
+                    <i class="fas fa-info-circle me-2"></i>Detalles de Conexión
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Información de Conexión</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Servidor:</strong> {{ connection.server }}</p>
+                <p><strong>Usuario:</strong> {{ connection.username }}</p>
+                <p><strong>Base de datos seleccionada:</strong> 
+                    {% if connection.selected_database %}
+                        <span class="badge bg-primary">{{ connection.selected_database }}</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Ninguna</span>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Seleccionar Base de Datos</h5>
+            </div>
+            <div class="card-body">
+                {% if databases %}
+                    <form method="POST" action="{% url 'automatizacion:select_database' connection.id %}">
+                        {% csrf_token %}
+                        
+                        <div class="input-group mb-3">
+                            <input type="text" id="databaseSearch" class="form-control" placeholder="Filtrar bases de datos...">
+                            <span class="input-group-text"><i class="fas fa-search"></i></span>
+                        </div>
+                        
+                        <div class="list-group database-list">
+                            {% for db in databases %}
+                                <div class="database-item">
+                                    <label class="list-group-item d-flex">
+                                        <div class="form-check w-100">
+                                            <input class="form-check-input me-2" type="radio" name="selected_database" 
+                                                   id="db-{{ forloop.counter }}" value="{{ db }}"
+                                                   {% if connection.selected_database == db %}checked{% endif %}>
+                                            <label class="form-check-label w-100" for="db-{{ forloop.counter }}">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <span>{{ db }}</span>
+                                                    {% if connection.selected_database == db %}
+                                                        <span class="badge bg-success">Seleccionada</span>
+                                                    {% endif %}
+                                                </div>
+                                            </label>
+                                        </div>
+                                    </label>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-check me-2"></i>Seleccionar Base de Datos
+                            </button>
+                        </div>
+                    </form>
+                {% else %}
+                    <div class="alert alert-warning">
+                        No se encontraron bases de datos disponibles en el servidor. Verifique su conexión o permisos.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Filtro para bases de datos
+    $("#databaseSearch").on("keyup", function() {
+        var value = $(this).val().toLowerCase();
+        $(".database-item").filter(function() {
+            $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+        });
+    });
+    
+    // Si ya hay una seleccionada, hacer scroll hasta ella
+    var selected = $('input[type="radio"]:checked').closest('.database-item');
+    if (selected.length) {
+        var container = $('.database-list');
+        container.animate({
+            scrollTop: selected.offset().top - container.offset().top + container.scrollTop()
+        }, 500);
+    }
+});
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.database-list {
+    max-height: 500px;
+    overflow-y: auto;
+    margin-bottom: 1rem;
+}
+
+.form-check-input:checked + .form-check-label {
+    font-weight: bold;
+}
+</style>
+{% endblock %}
