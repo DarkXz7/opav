@@ -12,6 +12,7 @@ class ResultadosProcesados(models.Model):
     """
     ResultadoID = models.AutoField(primary_key=True)
     ProcesoID = models.CharField(max_length=36, help_text="UUID del proceso que generó este resultado")
+    NombreProceso = models.CharField(max_length=200, help_text="Nombre del proceso asignado por el usuario")
     FechaRegistro = models.DateTimeField(auto_now_add=True, help_text="Timestamp automático de creación")
     DatosProcesados = models.TextField(help_text="Datos procesados en formato JSON")
     UsuarioResponsable = models.CharField(max_length=100, help_text="Usuario que ejecutó el proceso")

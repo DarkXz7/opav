@@ -431,6 +431,26 @@ class DataTransferService:
                 'tiempo_ejecucion': execution_time
             })
             
+            # 7. NUEVO: Guardar resumen en ResultadosProcesados
+            try:
+                resumen_resultado = self._guardar_resumen_resultados(
+                    proceso_id=proceso_id,
+                    nombre_proceso=process_name,
+                    tabla_destino=table_name,
+                    datos_procesados=validated_data,
+                    usuario_responsable=usuario_responsable,
+                    estado_proceso=kwargs.get('estado_proceso', 'COMPLETADO'),
+                    tipo_operacion=kwargs.get('tipo_operacion', f'MIGRACION_{process_name.upper().replace(" ", "_")}'),
+                    registros_afectados=kwargs.get('registros_afectados', 0),
+                    tiempo_ejecucion=execution_time,
+                    metadata=metadata
+                )
+                transfer_info['resumen_id'] = resumen_resultado
+                logger.info(f"📋 Resumen guardado en ResultadosProcesados con ID: {resumen_resultado}")
+            except Exception as e:
+                logger.warning(f"⚠️ No se pudo guardar resumen en ResultadosProcesados: {str(e)}")
+                # No fallar el proceso completo por este error
+            
             logger.info(f"🎉 Transferencia exitosa - Proceso: '{process_name}', Tabla: '{table_name}', ResultadoID: {resultado_id}")
             return True, transfer_info
             
@@ -448,6 +468,25 @@ class DataTransferService:
             })
             
             logger.error(f"❌ {error_msg} - Proceso: '{process_name}'")
+            
+            # NUEVO: Guardar resumen de error dinámico en ResultadosProcesados
+            try:
+                resumen_error = self._guardar_resumen_resultados(
+                    proceso_id=proceso_id,
+                    nombre_proceso=process_name,
+                    tabla_destino=transfer_info.get('table_name', 'Error_tabla_dinamica'),
+                    datos_procesados={'error': error_msg, 'tipo': 'dynamic_table_error'},
+                    usuario_responsable=usuario_responsable,
+                    estado_proceso='ERROR',
+                    tipo_operacion=kwargs.get('tipo_operacion', f'MIGRACION_{process_name.upper().replace(" ", "_")}'),
+                    registros_afectados=0,
+                    tiempo_ejecucion=execution_time,
+                    metadata={'error_details': error_msg, 'error_type': 'dynamic_table_error'}
+                )
+                transfer_info['resumen_id'] = resumen_error
+            except Exception as e:
+                logger.warning(f"⚠️ No se pudo guardar resumen de error dinámico: {str(e)}")
+            
             return False, transfer_info
             
         except Exception as e:
@@ -464,7 +503,95 @@ class DataTransferService:
             })
             
             logger.error(f"❌ {error_msg} - Proceso: '{process_name}'")
+            
+            # NUEVO: Guardar resumen de error en ResultadosProcesados
+            try:
+                resumen_error = self._guardar_resumen_resultados(
+                    proceso_id=proceso_id,
+                    nombre_proceso=process_name,
+                    tabla_destino=transfer_info.get('table_name', 'Error_sin_tabla'),
+                    datos_procesados={'error': error_msg, 'tipo': 'error_general'},
+                    usuario_responsable=usuario_responsable,
+                    estado_proceso='ERROR',
+                    tipo_operacion=kwargs.get('tipo_operacion', f'MIGRACION_{process_name.upper().replace(" ", "_")}'),
+                    registros_afectados=0,
+                    tiempo_ejecucion=execution_time,
+                    metadata={'error_details': error_msg, 'error_type': 'general_exception'}
+                )
+                transfer_info['resumen_id'] = resumen_error
+            except Exception as e:
+                logger.warning(f"⚠️ No se pudo guardar resumen de error: {str(e)}")
+            
             return False, transfer_info
+    
+    def _guardar_resumen_resultados(self, proceso_id: str, nombre_proceso: str, tabla_destino: str,
+                                   datos_procesados: Dict, usuario_responsable: str, estado_proceso: str,
+                                   tipo_operacion: str, registros_afectados: int, tiempo_ejecucion: float,
+                                   metadata: Optional[Dict] = None) -> int:
+        """
+        Guarda un resumen del proceso en la tabla ResultadosProcesados
+        
+        Args:
+            proceso_id: UUID del proceso
+            nombre_proceso: Nombre asignado por el usuario
+            tabla_destino: Nombre de la tabla específica creada (ej: Proceso_Honda)
+            datos_procesados: Datos del proceso
+            usuario_responsable: Usuario que ejecutó
+            estado_proceso: COMPLETADO o ERROR
+            tipo_operacion: Tipo de operación (ej: MIGRACION_HONDA)
+            registros_afectados: Número de registros procesados
+            tiempo_ejecucion: Duración en segundos
+            metadata: Metadatos adicionales
+            
+        Returns:
+            int: ID del registro creado en ResultadosProcesados
+        """
+        from .models_destino import ResultadosProcesados
+        
+        # Preparar campos/columnas procesadas
+        campos_procesados = []
+        if isinstance(datos_procesados, dict):
+            campos_procesados = list(datos_procesados.keys())
+        
+        # Crear JSON resumido como requiere el usuario
+        datos_json = {
+            'tabla_destino': tabla_destino,
+            'campos_columnas': campos_procesados,
+            'total_registros_cargados': registros_afectados,
+            'estado_final': estado_proceso,
+            'timestamp_procesamiento': datetime.now().isoformat()
+        }
+        
+        # Agregar información de error si aplica
+        if estado_proceso == 'ERROR' and metadata:
+            datos_json['detalles_error'] = metadata.get('error_details', 'Error no especificado')
+        
+        # Metadatos del proceso
+        metadatos_proceso = {
+            'version_proceso': '1.0',
+            'parametros_usados': metadata or {},
+            'duracion_segundos': tiempo_ejecucion,
+            'tabla_creada': tabla_destino
+        }
+        
+        # Crear registro en ResultadosProcesados
+        resultado = ResultadosProcesados(
+            ProcesoID=proceso_id,
+            NombreProceso=nombre_proceso,
+            DatosProcesados=json.dumps(datos_json, ensure_ascii=False),
+            UsuarioResponsable=usuario_responsable,
+            EstadoProceso=estado_proceso,
+            TipoOperacion=tipo_operacion,
+            RegistrosAfectados=registros_afectados,
+            TiempoEjecucion=tiempo_ejecucion,
+            MetadatosProceso=json.dumps(metadatos_proceso, ensure_ascii=False)
+        )
+        
+        # Guardar usando la conexión destino
+        resultado.save(using='destino')
+        
+        logger.info(f"✅ Resumen guardado en ResultadosProcesados - ID: {resultado.ResultadoID}")
+        return resultado.ResultadoID
     
     def _ensure_json_serializable(self, data):
         """

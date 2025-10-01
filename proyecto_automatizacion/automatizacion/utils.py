@@ -3,6 +3,7 @@ import pandas as pd
 import pyodbc
 import json
 import uuid
+import numpy as np
 from datetime import datetime
 from django.conf import settings
 
@@ -29,6 +30,50 @@ class ExcelProcessor:
             return []
         
         return self.excel_file.sheet_names
+    
+    def _clean_dataframe(self, df):
+        """
+        Limpia el DataFrame: renombra columnas Unnamed y reemplaza valores NaN
+        """
+        # Limpiar nombres de columnas
+        new_columns = []
+        unnamed_counter = 1
+        
+        for col in df.columns:
+            col_str = str(col)
+            if col_str.startswith('Unnamed'):
+                # Renombrar columnas Unnamed con un nombre más descriptivo
+                new_name = f'Columna_{unnamed_counter}'
+                unnamed_counter += 1
+            elif pd.isna(col) or col_str.lower() in ['nan', 'null', '']:
+                # Manejar columnas con nombres nulos o vacíos
+                new_name = f'Columna_{unnamed_counter}'
+                unnamed_counter += 1
+            else:
+                new_name = col_str
+            
+            new_columns.append(new_name)
+        
+        # Aplicar nuevos nombres de columnas
+        df.columns = new_columns
+        
+        # Reemplazar valores NaN, None, y variantes de 'nan'
+        df = df.fillna('')  # Reemplazar NaN con cadena vacía
+        
+        # Reemplazar valores de texto que son 'nan', 'null', etc.
+        for col in df.columns:
+            if df[col].dtype == 'object':  # Columnas de texto
+                df[col] = df[col].astype(str)
+                df[col] = df[col].replace({
+                    'nan': '',
+                    'NaN': '',
+                    'null': '',
+                    'NULL': '',
+                    'None': '',
+                    '<NA>': ''
+                })
+        
+        return df
         
     def get_sheet_preview(self, sheet_name, max_rows=10):
         """Obtiene una vista previa de una hoja específica"""
@@ -37,6 +82,8 @@ class ExcelProcessor:
             
         try:
             df = pd.read_excel(self.file_path, sheet_name=sheet_name, nrows=max_rows)
+            df = self._clean_dataframe(df)  # Limpiar datos
+            
             return {
                 'columns': list(df.columns),
                 'data': df.head(max_rows).to_dict('records'),
@@ -53,6 +100,7 @@ class ExcelProcessor:
             
         try:
             df = pd.read_excel(self.file_path, sheet_name=sheet_name, nrows=10)
+            df = self._clean_dataframe(df)  # Limpiar datos
             columns = []
             
             for col in df.columns:
@@ -95,7 +143,8 @@ class ExcelProcessor:
                 df = pd.read_excel(self.file_path, sheet_name=sheet_name, usecols=selected_columns)
             else:
                 df = pd.read_excel(self.file_path, sheet_name=sheet_name)
-                
+            
+            df = self._clean_dataframe(df)  # Limpiar datos
             return df
         except Exception as e:
             print(f"Error al leer datos de la hoja {sheet_name}: {str(e)}")
@@ -107,11 +156,56 @@ class CSVProcessor:
     """
     def __init__(self, file_path):
         self.file_path = file_path
+    
+    def _clean_dataframe(self, df):
+        """
+        Limpia el DataFrame: renombra columnas Unnamed y reemplaza valores NaN
+        """
+        # Limpiar nombres de columnas
+        new_columns = []
+        unnamed_counter = 1
+        
+        for col in df.columns:
+            col_str = str(col)
+            if col_str.startswith('Unnamed'):
+                # Renombrar columnas Unnamed con un nombre más descriptivo
+                new_name = f'Columna_{unnamed_counter}'
+                unnamed_counter += 1
+            elif pd.isna(col) or col_str.lower() in ['nan', 'null', '']:
+                # Manejar columnas con nombres nulos o vacíos
+                new_name = f'Columna_{unnamed_counter}'
+                unnamed_counter += 1
+            else:
+                new_name = col_str
+            
+            new_columns.append(new_name)
+        
+        # Aplicar nuevos nombres de columnas
+        df.columns = new_columns
+        
+        # Reemplazar valores NaN, None, y variantes de 'nan'
+        df = df.fillna('')  # Reemplazar NaN con cadena vacía
+        
+        # Reemplazar valores de texto que son 'nan', 'null', etc.
+        for col in df.columns:
+            if df[col].dtype == 'object':  # Columnas de texto
+                df[col] = df[col].astype(str)
+                df[col] = df[col].replace({
+                    'nan': '',
+                    'NaN': '',
+                    'null': '',
+                    'NULL': '',
+                    'None': '',
+                    '<NA>': ''
+                })
+        
+        return df
         
     def get_preview(self, max_rows=10):
         """Obtiene una vista previa del archivo CSV"""
         try:
             df = pd.read_csv(self.file_path, nrows=max_rows)
+            df = self._clean_dataframe(df)  # Limpiar datos
             return {
                 'columns': list(df.columns),
                 'data': df.head(max_rows).to_dict('records'),
@@ -125,6 +219,7 @@ class CSVProcessor:
         """Obtiene las columnas del CSV con tipos de datos"""
         try:
             df = pd.read_csv(self.file_path, nrows=10)
+            df = self._clean_dataframe(df)  # Limpiar datos
             columns = []
             
             for col in df.columns:
@@ -164,7 +259,8 @@ class CSVProcessor:
                 df = pd.read_csv(self.file_path, usecols=selected_columns)
             else:
                 df = pd.read_csv(self.file_path)
-                
+            
+            df = self._clean_dataframe(df)  # Limpiar datos
             return df
         except Exception as e:
             print(f"Error al leer datos del CSV: {str(e)}")

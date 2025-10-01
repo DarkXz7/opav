@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load custom_filters %}
 
 {% block title %}Selección de Hojas - Sistema de Migración de Datos{% endblock %}
 
@@ -196,8 +197,9 @@
                 success: function(response) {
                     if (response.success) {
                         // Redirigir a primera hoja para seleccionar columnas
-                        window.location.href = '{% url "automatizacion:list_excel_columns" source.id %}' + 
-                            selectedSheets[0] + '/?process_id=' + response.process_id;
+                        var sourceId = {{ source.id }};
+                        var firstSheet = encodeURIComponent(selectedSheets[0]);
+                        window.location.href = '/automatizacion/excel/' + sourceId + '/sheet/' + firstSheet + '/columns/?process_id=' + response.process_id;
                     } else {
                         alert('Error al guardar el proceso: ' + response.error);
                     }
