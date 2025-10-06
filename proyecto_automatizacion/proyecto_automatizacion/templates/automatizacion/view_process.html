@@ -19,6 +19,9 @@
                 <a href="{% url 'automatizacion:run_process' process.id %}" class="btn btn-success">
                     <i class="fas fa-play me-2"></i>Ejecutar Proceso
                 </a>
+                <a href="{% url 'automatizacion:edit_process' process.id %}" class="btn btn-outline-primary ms-2">
+                    <i class="fas fa-edit me-2"></i>Editar
+                </a>
                 <a href="{% url 'automatizacion:delete_process' process.id %}" class="btn btn-outline-danger ms-2">
                     <i class="fas fa-trash me-2"></i>Eliminar
                 </a>
@@ -48,7 +51,15 @@
                     </span>
                 </p>
                 <p><strong>Tipo de origen:</strong> {{ process.source.get_source_type_display }}</p>
-                <p><strong>Base de datos destino:</strong> {{ process.target_db_name }}</p>
+                <p><strong>Base de datos destino:</strong> 
+                    {% if process.target_db_connection %}
+                        {{ process.target_db_connection.database }}
+                    {% elif process.target_db_name == 'default' %}
+                        DestinoAutomatizacion
+                    {% else %}
+                        {{ process.target_db_name }}
+                    {% endif %}
+                </p>
                 {% if process.description %}
                     <div class="mt-3">
                         <h6>Descripción:</h6>
@@ -93,7 +104,13 @@
     <div class="col-md-8">
         <div class="card mb-4">
             <div class="card-header">
-                <h5 class="mb-0">Columnas Seleccionadas</h5>
+                <h5 class="mb-0">
+                    {% if process.source.source_type == 'excel' %}
+                        Hojas Seleccionadas
+                    {% else %}
+                        Columnas Seleccionadas
+                    {% endif %}
+                </h5>
             </div>
             <div class="card-body">
                 {% if process.selected_columns %}
@@ -110,6 +127,14 @@
                                 <div id="collapse{{ forloop.counter }}" class="accordion-collapse collapse" 
                                      aria-labelledby="heading{{ forloop.counter }}" data-bs-parent="#columnsAccordion">
                                     <div class="accordion-body">
+                                        <p class="text-muted mb-2">
+                                            <i class="fas fa-columns me-1"></i>
+                                            {% if process.source.source_type == 'excel' %}
+                                                Columnas de la hoja "{{ item_name }}":
+                                            {% else %}
+                                                Columnas de la tabla "{{ item_name }}":
+                                            {% endif %}
+                                        </p>
                                         <div class="row">
                                             {% for column in columns %}
                                                 <div class="col-md-4 mb-2">
@@ -141,26 +166,32 @@
                             <thead>
                                 <tr>
                                     <th>Fecha</th>
-                                    <th>Duración</th>
+                                    <th>Etapa</th>
+                                    <th>Mensaje</th>
                                     <th>Filas</th>
-                                    <th>Estado</th>
+                                    <th>Duración</th>
+                                    <th>Nivel</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for log in logs %}
                                     <tr>
-                                        <td>{{ log.start_time|date:"d/m/Y H:i:s" }}</td>
+                                        <td>{{ log.timestamp|date:"d/m/Y H:i:s" }}</td>
                                         <td>
-                                            {% if log.end_time %}
-                                                {{ log.start_time|timesince:log.end_time }}
+                                            <span class="badge bg-secondary">{{ log.get_stage_display }}</span>
+                                        </td>
+                                        <td>{{ log.message|truncatechars:50 }}</td>
+                                        <td>{{ log.rows_processed|default:"0" }}</td>
+                                        <td>
+                                            {% if log.duration_ms %}
+                                                {{ log.duration_ms }}ms
                                             {% else %}
-                                                En proceso...
+                                                -
                                             {% endif %}
                                         </td>
-                                        <td>{{ log.rows_processed }}</td>
                                         <td>
-                                            <span class="badge {% if log.status == 'completed' %}bg-success{% elif log.status == 'failed' %}bg-danger{% else %}bg-warning{% endif %}">
-                                                {{ log.status }}
+                                            <span class="badge {% if log.level == 'success' %}bg-success{% elif log.level == 'error' or log.level == 'critical' %}bg-danger{% elif log.level == 'warning' %}bg-warning{% else %}bg-info{% endif %}">
+                                                {{ log.get_level_display }}
                                             </span>
                                             {% if log.error_message %}
                                                 <button class="btn btn-sm btn-outline-danger ms-2" 

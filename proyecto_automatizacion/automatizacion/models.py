@@ -16,7 +16,7 @@ class DatabaseConnection(models.Model):
     """
     Almacena información de conexión a servidor de base de datos
     """
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, unique=True)
     server = models.CharField(max_length=255)
     username = models.CharField(max_length=100)
     password = models.CharField(max_length=255)
@@ -81,7 +81,7 @@ class MigrationProcess(models.Model):
         ('failed', 'Fallido'),
     ]
     
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, unique=True)
     description = models.TextField(blank=True, null=True)
     source = models.ForeignKey(DataSource, on_delete=models.CASCADE, related_name='processes')
     
@@ -124,6 +124,15 @@ class MigrationProcess(models.Model):
         self.last_run = timezone.now()
         self.save()
         
+        # Crear log de inicio del proceso
+        MigrationLog.log(
+            process=self,
+            stage='connection',
+            message=f'Iniciando ejecución del proceso: {self.name}',
+            level='info',
+            user='sistema'
+        )
+        
         # CORRECCIÓN 1: Usar ProcessTracker para generar UUID único y crear log en ProcesoLog
         tracker = ProcessTracker(self.name)
         
@@ -157,6 +166,17 @@ class MigrationProcess(models.Model):
                 # Calcular estadísticas de los datos extraídos
                 registros_procesados = len(datos_origen) if isinstance(datos_origen, list) else 1
                 
+                # Crear log de extracción de datos
+                MigrationLog.log(
+                    process=self,
+                    stage='data_extraction',
+                    message=f'Datos extraídos de {self.source.source_type if self.source else "origen"}',
+                    level='info',
+                    rows=registros_procesados,
+                    duration=int(duracion_extraccion * 1000),
+                    user='sistema'
+                )
+                
                 # Actualizar estado del proceso
                 tracker.actualizar_estado('PROCESANDO_DATOS', 
                     f'Extrayendo {registros_procesados} registros de {self.source.source_type if self.source else "origen"}')
@@ -185,6 +205,15 @@ class MigrationProcess(models.Model):
                 # Actualizar estado antes de transferencia
                 tracker.actualizar_estado('TRANSFIRIENDO', 'Insertando datos en tabla dinámica')
                 
+                # Crear log de transferencia de datos
+                MigrationLog.log(
+                    process=self,
+                    stage='data_loading',
+                    message='Iniciando transferencia de datos a tabla dinámica',
+                    level='info',
+                    user='sistema'
+                )
+                
                 # CORRECCIÓN 3: Usar el mismo proceso_id del tracker en la transferencia
                 success, result_info = data_transfer_service.transfer_to_dynamic_table(
                     process_name=self.name,
@@ -209,6 +238,18 @@ class MigrationProcess(models.Model):
                     duracion_total = result_info.get('duracion_total', 0)
                     
                     detalles_exito = f"Excel procesado: {hojas_exitosas} hojas exitosas, {total_registros} registros totales, {duracion_total:.2f}s"
+                    
+                    # Crear log de éxito para Excel
+                    MigrationLog.log(
+                        process=self,
+                        stage='completion',
+                        message=detalles_exito,
+                        level='success',
+                        rows=total_registros,
+                        duration=int(duracion_total * 1000),
+                        user='sistema'
+                    )
+                    
                     tracker.finalizar_exito(detalles_exito)
                     
                     print(f"✅ Proceso Excel '{self.name}' ejecutado exitosamente.")
@@ -227,6 +268,17 @@ class MigrationProcess(models.Model):
                     registros_procesados = len(datos_origen) if 'datos_origen' in locals() and isinstance(datos_origen, list) else 1
                     
                     detalles_exito = f"Tabla: {table_name}, ResultadoID: {resultado_id}, Registros: {registros_procesados}"
+                    
+                    # Crear log de éxito para SQL/CSV
+                    MigrationLog.log(
+                        process=self,
+                        stage='completion',
+                        message=detalles_exito,
+                        level='success',
+                        rows=registros_procesados,
+                        user='sistema'
+                    )
+                    
                     tracker.finalizar_exito(detalles_exito)
                     
                     print(f"✅ Proceso '{self.name}' ejecutado exitosamente.")
@@ -249,12 +301,33 @@ class MigrationProcess(models.Model):
                     table_name = result_info.get('table_name', 'No determinada')
                     error_completo = f"Error en transferencia a tabla '{table_name}': {error_msg}"
                 
+                # Crear log de error
+                MigrationLog.log(
+                    process=self,
+                    stage='data_loading',
+                    message='Error durante la transferencia de datos',
+                    level='error',
+                    error=error_completo,
+                    user='sistema'
+                )
+                
                 # CORRECCIÓN 5: Registrar error en ProcessTracker antes de lanzar excepción
                 tracker.finalizar_error(Exception(error_completo))
                 raise Exception(error_completo)
                 
         except Exception as e:
             self.status = 'failed'
+            
+            # Crear log de error general
+            MigrationLog.log(
+                process=self,
+                stage='data_loading',
+                message='Error general durante la ejecución del proceso',
+                level='critical',
+                error=str(e),
+                user='sistema'
+            )
+            
             # CORRECCIÓN 6: Asegurar que el error se registre en ProcesoLog
             if 'tracker' in locals():
                 tracker.finalizar_error(e)
@@ -425,6 +498,15 @@ class MigrationProcess(models.Model):
             selected_sheets = self.selected_sheets if isinstance(self.selected_sheets, list) else (json.loads(self.selected_sheets) if self.selected_sheets else [])
             if not selected_sheets:
                 raise Exception('No hay hojas seleccionadas en el Excel')
+            
+            # Crear log de inicio de procesamiento Excel
+            MigrationLog.log(
+                process=self,
+                stage='data_extraction',
+                message=f'Iniciando procesamiento de Excel: {len(selected_sheets)} hojas seleccionadas',
+                level='info',
+                user='sistema'
+            )
             
             # Variables para consolidar resultados
             hojas_procesadas = []
@@ -624,9 +706,30 @@ class MigrationProcess(models.Model):
             if success_general:
                 estado_final = f"Excel procesado: {hojas_exitosas}/{len(selected_sheets)} hojas exitosas, {total_registros_procesados} registros totales"
                 main_tracker.actualizar_estado('COMPLETADO', estado_final)
+                
+                # Crear log de éxito para procesamiento Excel completo
+                MigrationLog.log(
+                    process=self,
+                    stage='completion',
+                    message=estado_final,
+                    level='success',
+                    rows=total_registros_procesados,
+                    duration=int(duracion_total * 1000),
+                    user='sistema'
+                )
             else:
                 estado_final = f"Error procesando Excel: {hojas_fallidas}/{len(selected_sheets)} hojas fallaron"
                 main_tracker.actualizar_estado('ERROR', estado_final)
+                
+                # Crear log de error para procesamiento Excel
+                MigrationLog.log(
+                    process=self,
+                    stage='data_loading',
+                    message=f'Error procesando Excel: {hojas_fallidas} hojas fallaron',
+                    level='error',
+                    error=estado_final,
+                    user='sistema'
+                )
             
             print(f"\n📊 RESUMEN PROCESAMIENTO EXCEL:")
             print(f"   📋 Total hojas: {len(selected_sheets)}")
@@ -641,6 +744,16 @@ class MigrationProcess(models.Model):
             # Error general procesando el archivo Excel
             error_msg = f'Error general procesando Excel: {str(e)}'
             main_tracker.actualizar_estado('ERROR', error_msg)
+            
+            # Crear log de error crítico para Excel
+            MigrationLog.log(
+                process=self,
+                stage='data_extraction',
+                message='Error crítico procesando archivo Excel',
+                level='critical',
+                error=error_msg,
+                user='sistema'
+            )
             
             return False, {
                 'success': False,

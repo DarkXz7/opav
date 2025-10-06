@@ -12,6 +12,7 @@ urlpatterns = [
     path('process/new/', views.new_process, name='new_process'),
     path('process/list/', views.list_processes, name='list_processes'),
     path('process/<int:process_id>/', views.view_process, name='view_process'),
+    path('process/<int:process_id>/edit/', views.edit_process, name='edit_process'),
     path('process/<int:process_id>/run/', views.run_process, name='run_process'),
     path('process/<int:process_id>/delete/', views.delete_process, name='delete_process'),
     
@@ -32,6 +33,7 @@ urlpatterns = [
     # Rutas para API AJAX
     path('api/save_process/', views.save_process, name='save_process'),
     path('api/delete_connection/<int:connection_id>/', views.delete_connection, name='delete_connection'),
+    path('api/process/<int:process_id>/load_columns/', views.load_process_columns, name='load_process_columns'),
     
     # Rutas para Transferencia Segura de Datos  
     path('sql/connection/<int:connection_id>/table/<str:table_name>/transfer/', 
@@ -66,5 +68,5 @@ urlpatterns = [
     
     # Rutas para Sistema de Logs (SQL Server)
     path('logs/', log_views.view_logs, name='view_logs'),
-    path('logs/<int:log_id>/', log_views.view_log_detail, name='view_log_detail'),
+    path('logs/<str:log_id>/', log_views.view_log_detail, name='view_log_detail'),
 ]

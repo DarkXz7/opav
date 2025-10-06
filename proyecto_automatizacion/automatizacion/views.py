@@ -12,6 +12,7 @@ from django.contrib import messages
 from django.core.files.storage import FileSystemStorage
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
+from django.db import models
 
 # Importar decoradores de logging
 from .decorators import log_operation
@@ -242,18 +243,50 @@ def connect_sql(request):
         # Validar datos
         if not all([name, server, username, password]):
             messages.error(request, 'Todos los campos son obligatorios')
-            return render(request, 'automatizacion/connect_sql.html')
+            return render(request, 'automatizacion/connect_sql.html', {
+                'form_data': {
+                    'name': name or '',
+                    'server': server or '',
+                    'username': username or '',
+                    'port': port,
+                    'database': request.POST.get('database', '')
+                }
+            })
         
         # Probar conexión al servidor (sin especificar base de datos)
         connector = SQLServerConnector(server, username, password, port)
         if not connector.test_connection():
             messages.error(request, 'No se pudo conectar al servidor. Verifique los datos de conexión.')
-            return render(request, 'automatizacion/connect_sql.html')
+            return render(request, 'automatizacion/connect_sql.html', {
+                'form_data': {
+                    'name': name,
+                    'server': server,
+                    'username': username,
+                    'port': port,
+                    'database': request.POST.get('database', '')
+                }
+            })
         
         # Obtener la lista de bases de datos disponibles
         databases = connector.get_databases()
         
-        # Guardar conexión
+        # Verificar si ya existe una conexión con el mismo nombre
+        existing_connection = DatabaseConnection.objects.filter(name=name).first()
+        
+        if existing_connection:
+            # No permitir crear conexión con nombre duplicado
+            messages.error(request, f'Ya existe una conexión con el nombre "{name}". Por favor, elija un nombre diferente.')
+            return render(request, 'automatizacion/connect_sql.html', {
+                'form_data': {
+                    'name': name,
+                    'server': server,
+                    'username': username,
+                    'port': port,
+                    'database': request.POST.get('database', '')
+                }
+            })
+        
+        # Crear nueva conexión
         connection = DatabaseConnection.objects.create(
             name=name,
             server=server,
@@ -263,17 +296,26 @@ def connect_sql(request):
             last_used=timezone.now(),
             available_databases=databases
         )
+        messages.success(request, 'Nueva conexión creada correctamente')
         
         # Redirigir a la página de selección de base de datos
-        messages.success(request, 'Conexión al servidor establecida correctamente')
         return redirect('automatizacion:list_sql_databases', connection_id=connection.id)
         
     return render(request, 'automatizacion/connect_sql.html')
 
 def list_connections(request):
-    """Lista todas las conexiones guardadas"""
-    connections = DatabaseConnection.objects.all().order_by('-created_at')
-    return render(request, 'automatizacion/list_connections.html', {'connections': connections})
+    """Lista todas las conexiones guardadas (solo una por nombre único)"""
+    # Obtener solo una conexión por cada nombre único, priorizando la más reciente
+    connections = DatabaseConnection.objects.values('name').annotate(
+        latest_id=models.Max('id'),
+        latest_created=models.Max('created_at')
+    ).order_by('-latest_created')
+    
+    # Obtener las conexiones completas basadas en los IDs únicos
+    connection_ids = [conn['latest_id'] for conn in connections]
+    unique_connections = DatabaseConnection.objects.filter(id__in=connection_ids).order_by('-created_at')
+    
+    return render(request, 'automatizacion/list_connections.html', {'connections': unique_connections})
 
 @log_operation("Vista de conexión SQL")
 def view_connection(request, connection_id):
@@ -528,15 +570,54 @@ def save_process(request):
         
         # Crear o actualizar proceso
         process_id = data.get('process_id')
+        process_name = data.get('name')
+        
+        print(f"DEBUG: process_id recibido: {process_id}, process_name: {process_name}")
+        
         if process_id:
-            # Actualizar proceso existente
-            process = get_object_or_404(MigrationProcess, pk=process_id)
-            process.name = data.get('name')
-            process.description = data.get('description', '')
+            # Verificar si el proceso existe
+            try:
+                process = MigrationProcess.objects.get(pk=process_id)
+                print(f"DEBUG: Proceso encontrado para actualización: ID {process.id}, nombre actual: '{process.name}'")
+                
+                # Verificar si el nuevo nombre ya existe en otro proceso
+                existing_process = MigrationProcess.objects.filter(name=process_name).exclude(id=process.id).first()
+                if existing_process:
+                    return JsonResponse({
+                        'error': f'Ya existe un proceso con el nombre "{process_name}". Por favor, elija un nombre diferente.'
+                    }, status=400)
+                
+                process.name = process_name
+                process.description = data.get('description', '')
+                print(f"DEBUG: Actualizando proceso existente con nuevo nombre: '{process_name}'")
+                
+            except MigrationProcess.DoesNotExist:
+                print(f"DEBUG: Proceso con ID {process_id} no encontrado, creando uno nuevo")
+                # Si el proceso no existe, crear uno nuevo
+                existing_process = MigrationProcess.objects.filter(name=process_name).first()
+                if existing_process:
+                    return JsonResponse({
+                        'error': f'Ya existe un proceso con el nombre "{process_name}". Por favor, elija un nombre diferente.'
+                    }, status=400)
+                
+                # Crear nuevo proceso
+                process = MigrationProcess(
+                    name=process_name,
+                    description=data.get('description', ''),
+                    source=source
+                )
         else:
+            print(f"DEBUG: Creando nuevo proceso con nombre: '{process_name}'")
+            # Verificar si ya existe un proceso con el mismo nombre
+            existing_process = MigrationProcess.objects.filter(name=process_name).first()
+            if existing_process:
+                return JsonResponse({
+                    'error': f'Ya existe un proceso con el nombre "{process_name}". Por favor, elija un nombre diferente.'
+                }, status=400)
+            
             # Crear nuevo proceso
             process = MigrationProcess(
-                name=data.get('name'),
+                name=process_name,
                 description=data.get('description', ''),
                 source=source
             )
@@ -612,3 +693,141 @@ def delete_connection(request, connection_id):
     
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+
+def edit_process(request, process_id):
+    """Permite editar un proceso guardado"""
+    process = get_object_or_404(MigrationProcess, pk=process_id)
+    
+    if request.method == 'POST':
+        # Actualizar los campos del proceso
+        process.name = request.POST.get('name', process.name)
+        process.description = request.POST.get('description', process.description)
+        
+        # Actualizar campos específicos según el tipo de fuente
+        if process.source.source_type in ['excel', 'csv']:
+            # Para Excel/CSV, actualizar hojas/columnas seleccionadas
+            if 'selected_sheets' in request.POST:
+                import json
+                try:
+                    process.selected_sheets = json.loads(request.POST.get('selected_sheets'))
+                except:
+                    pass
+            
+            if 'selected_columns' in request.POST:
+                import json
+                try:
+                    process.selected_columns = json.loads(request.POST.get('selected_columns'))
+                except:
+                    pass
+                    
+        elif process.source.source_type == 'sql':
+            # Para SQL, actualizar base de datos, tablas y columnas
+            process.selected_database = request.POST.get('selected_database', process.selected_database)
+            
+            if 'selected_tables' in request.POST:
+                import json
+                try:
+                    process.selected_tables = json.loads(request.POST.get('selected_tables'))
+                except:
+                    pass
+            
+            if 'selected_columns' in request.POST:
+                import json
+                try:
+                    process.selected_columns = json.loads(request.POST.get('selected_columns'))
+                except:
+                    pass
+        
+        # Guardar cambios
+        process.save()
+        
+        # Crear log de modificación
+        from .models import MigrationLog
+        MigrationLog.log(
+            process=process,
+            stage='validation',
+            message=f'Proceso modificado por usuario',
+            level='info',
+            user=request.user.username if request.user.is_authenticated else 'anónimo'
+        )
+        
+        messages.success(request, f'El proceso "{process.name}" ha sido actualizado correctamente.')
+        return redirect('automatizacion:view_process', process_id=process.id)
+    
+    # GET - Mostrar formulario de edición
+    context = {
+        'process': process,
+        'source': process.source
+    }
+    
+    # Obtener información específica según tipo de fuente
+    if process.source.source_type == 'excel':
+        # Para Excel, obtener información de hojas disponibles
+        context['file_path'] = process.source.file_path
+        try:
+            from .utils import ExcelProcessor
+            processor = ExcelProcessor(process.source.file_path)
+            context['available_sheets'] = processor.get_sheet_names()
+        except Exception as e:
+            context['available_sheets'] = []
+            messages.warning(request, f'No se pudieron cargar las hojas del archivo: {str(e)}')
+            
+    elif process.source.source_type == 'csv':
+        # Para CSV
+        context['file_path'] = process.source.file_path
+        
+    elif process.source.source_type == 'sql':
+        # Para SQL, obtener información de conexión
+        context['connection'] = process.source.connection
+        try:
+            from .utils import DatabaseInspector
+            inspector = DatabaseInspector(process.source.connection)
+            context['available_databases'] = inspector.get_databases()
+            
+            if process.selected_database:
+                context['available_tables'] = inspector.get_tables(process.selected_database)
+        except Exception as e:
+            context['available_databases'] = []
+            context['available_tables'] = []
+            messages.warning(request, f'No se pudo conectar a la base de datos: {str(e)}')
+    
+    return render(request, 'automatizacion/edit_process.html', context)
+
+def load_process_columns(request, process_id):
+    """Vista AJAX para cargar columnas de hojas de Excel seleccionadas"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Método no permitido'}, status=405)
+    
+    process = get_object_or_404(MigrationProcess, pk=process_id)
+    
+    if process.source.source_type != 'excel':
+        return JsonResponse({'error': 'Este proceso no es de tipo Excel'}, status=400)
+    
+    try:
+        import json
+        data = json.loads(request.body)
+        selected_sheets = data.get('selected_sheets', [])
+        
+        if not selected_sheets:
+            return JsonResponse({'error': 'No se especificaron hojas'}, status=400)
+        
+        from .utils import ExcelProcessor
+        processor = ExcelProcessor(process.source.file_path)
+        
+        sheets_columns = {}
+        for sheet_name in selected_sheets:
+            try:
+                columns = processor.get_columns(sheet_name)
+                sheets_columns[sheet_name] = columns
+            except Exception as e:
+                sheets_columns[sheet_name] = []
+        
+        return JsonResponse({
+            'success': True,
+            'sheets_columns': sheets_columns
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'error': f'Error cargando columnas: {str(e)}'
+        }, status=500)

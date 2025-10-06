@@ -42,11 +42,21 @@
     </div>
     {% endif %}
     
+    <!-- Contenedor para mensajes dinámicos de JavaScript -->
+    <div id="dynamic-messages" class="row mb-3" style="display: none;">
+        <div class="col">
+            <div id="dynamic-alert" class="alert alert-dismissible fade show" role="alert">
+                <span id="dynamic-message-text"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+    
     <div class="row mb-4">
         <div class="col-lg-7">
             <div class="card">
                 <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                    <h2 class="h5 mb-0">Columnas Disponibles</h2>
+                    <h2 class="h5 mb-0 text-dark">Columnas Disponibles</h2>
                     <div>
                         <input type="text" id="columnSearch" class="form-control form-control-sm" placeholder="Buscar columna...">
                     </div>
@@ -105,7 +115,7 @@
         <div class="col-lg-5">
             <div class="card mb-4">
                 <div class="card-header bg-light">
-                    <h2 class="h5 mb-0">Vista Previa de Datos</h2>
+                    <h2 class="h5 mb-0 text-dark">Vista Previa de Datos</h2>
                 </div>
                 <div class="card-body">
                     {% if preview %}
@@ -137,6 +147,7 @@
                     {% endif %}
                 </div>
             </div>
+
             
             <div class="card" id="selectionCard" style="display: none;">
                 <div class="card-header bg-light">
@@ -144,6 +155,7 @@
                 </div>
                 <div class="card-body">
                     <form id="processSaveForm">
+                        {% csrf_token %}
                         <div class="mb-3">
                             <label for="processName" class="form-label">Nombre del proceso</label>
                             <input type="text" class="form-control" id="processName" required>
@@ -177,7 +189,82 @@
 
 {% block extra_js %}
 <script>
+// Función para mostrar mensajes elegantes - VERSION SIMPLIFICADA
+function showMessage(message, type) {
+    console.log('========== SHOWMESSAGE LLAMADA ==========');
+    console.log('Mensaje:', message);
+    console.log('Tipo:', type);
+    
+    // Versión simple y directa - crear mensaje al principio de la página
+    var alertClass = 'alert-' + type;
+    var iconClass = '';
+    
+    switch(type) {
+        case 'success':
+            iconClass = 'fas fa-check-circle';
+            break;
+        case 'danger':
+            iconClass = 'fas fa-exclamation-triangle';
+            break;
+        case 'warning':
+            iconClass = 'fas fa-exclamation-circle';
+            break;
+        default:
+            iconClass = 'fas fa-info-circle';
+    }
+    
+    // Eliminar mensajes anteriores
+    $('.temp-message-alert').remove();
+    
+    // Crear mensaje temporal al inicio de la página
+    var alertHtml = '<div class="temp-message-alert alert ' + alertClass + ' alert-dismissible fade show m-3" role="alert" style="position: relative; z-index: 1050;">' +
+                   '<i class="' + iconClass + ' me-2"></i>' + message +
+                   '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>' +
+                   '</div>';
+    
+    // Insertar al principio del body
+    $('body').prepend(alertHtml);
+    
+    console.log('Mensaje creado y mostrado');
+    
+    // Auto-hide después de 4 segundos para mensajes de éxito (excepto si contiene enlaces)
+    if (type === 'success' && message.indexOf('<a ') === -1) {
+        setTimeout(function() {
+            $('.temp-message-alert').fadeOut(function() {
+                $(this).remove();
+            });
+        }, 4000);
+    }
+    
+    // Scroll hacia arriba
+    $('html, body').animate({
+        scrollTop: 0
+    }, 500);
+    
+    console.log('========== SHOWMESSAGE COMPLETADA ==========');
+}
+
 $(document).ready(function() {
+    console.log('========== DOM LISTO - INICIALIZANDO FUNCIONALIDADES ==========');
+    console.log('jQuery disponible:', typeof $ !== 'undefined');
+    console.log('Botón seleccionar columnas encontrado:', $('#selectColumnsBtn').length > 0);
+    console.log('Botón guardar proceso encontrado:', $('#saveProcessBtn').length > 0);
+    
+    // Función de prueba disponible desde la consola (opcional)
+    window.testMessage = function() {
+        showMessage('Función de prueba funcionando correctamente', 'success');
+    };
+    console.log('Función testMessage() disponible en la consola si necesitas hacer pruebas');
+    
+    // Obtener ID de proceso de la URL o localStorage
+    var urlParams = new URLSearchParams(window.location.search);
+    var processId = urlParams.get('process_id') || localStorage.getItem('current_process_id');
+    
+    // Si ya existe un proceso, cargar su información
+    if (processId) {
+        $('#processName').val('Proceso de migración ' + processId);
+    }
+    
     // Busqueda de columnas
     $('#columnSearch').on('keyup', function() {
         var value = $(this).val().toLowerCase();
@@ -200,23 +287,15 @@ $(document).ready(function() {
         }
     });
     
-    // Obtener ID de proceso de la URL o localStorage
-    var urlParams = new URLSearchParams(window.location.search);
-    var processId = urlParams.get('process_id') || localStorage.getItem('current_process_id');
-    
-    // Si ya existe un proceso, cargar su información
-    if (processId) {
-        $('#processName').val('Proceso de migración ' + processId);
-    }
-    
-    // Mostrar área de configuración de proceso
+    // Botón para seleccionar columnas
     $('#selectColumnsBtn').click(function() {
         // Verificar que haya columnas seleccionadas
         if ($('.column-checkbox:checked').length === 0) {
-            alert('Debe seleccionar al menos una columna');
+            showMessage('Debe seleccionar al menos una columna', 'warning');
             return;
         }
         
+        // Mostrar área de configuración de proceso
         $('#selectionCard').show();
         $('html, body').animate({
             scrollTop: $('#selectionCard').offset().top
@@ -227,7 +306,7 @@ $(document).ready(function() {
     $('#saveProcessBtn').click(function() {
         // Verificar que haya columnas seleccionadas
         if ($('.column-checkbox:checked').length === 0) {
-            alert('Debe seleccionar al menos una columna');
+            showMessage('Debe seleccionar al menos una columna', 'warning');
             return;
         }
         
@@ -238,7 +317,7 @@ $(document).ready(function() {
         
         var processName = $('#processName').val();
         if (!processName) {
-            alert('Debe proporcionar un nombre para el proceso');
+            showMessage('Debe proporcionar un nombre para el proceso', 'warning');
             return;
         }
         
@@ -255,19 +334,52 @@ $(document).ready(function() {
             target_db: $('#targetDB').val()
         };
         
+        // Deshabilitar el botón mientras se procesa
+        $('#saveProcessBtn').prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Guardando...');
+        
         // Enviar datos al servidor
         $.ajax({
             url: '{% url "automatizacion:save_process" %}',
             type: 'POST',
             contentType: 'application/json',
             data: JSON.stringify(processData),
+            headers: {
+                'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val() || '{{ csrf_token }}'
+            },
             success: function(response) {
-                alert('Proceso guardado correctamente');
+                showMessage('✅ Proceso guardado correctamente! Redirigiendo en 2 segundos...', 'success');
+                
                 processId = response.process_id;
                 localStorage.setItem('current_process_id', processId);
+                
+                // Restaurar el botón
+                $('#saveProcessBtn').prop('disabled', false).html('<i class="fas fa-save me-1"></i>Guardar Proceso');
+                
+                // Redirigir a la página del proceso después de un breve delay
+                setTimeout(function() {
+                    var processUrl = '{% url "automatizacion:view_process" 0 %}'.replace('0', processId);
+                    window.location.href = processUrl;
+                }, 2000);
             },
-            error: function(xhr) {
-                alert('Error al guardar el proceso: ' + xhr.responseJSON.error);
+            error: function(xhr, status, error) {
+                let errorMessage = 'Error al guardar el proceso';
+                if (xhr.responseJSON && xhr.responseJSON.error) {
+                    errorMessage = xhr.responseJSON.error;
+                } else if (xhr.responseText) {
+                    try {
+                        let errorData = JSON.parse(xhr.responseText);
+                        errorMessage = errorData.error || errorMessage;
+                    } catch (e) {
+                        errorMessage = `Error del servidor (${xhr.status}): ${xhr.statusText}`;
+                    }
+                } else {
+                    errorMessage = `Error de conexión: ${error}`;
+                }
+                
+                showMessage(errorMessage, 'danger');
+                
+                // Restaurar el botón
+                $('#saveProcessBtn').prop('disabled', false).html('<i class="fas fa-save me-1"></i>Guardar Proceso');
             }
         });
     });
@@ -286,6 +398,7 @@ $(document).ready(function() {
             window.location.href = '{% url "automatizacion:index" %}' + 'process/' + processId + '/run/';
         }
     });
+
 });
 </script>
 {% endblock %}

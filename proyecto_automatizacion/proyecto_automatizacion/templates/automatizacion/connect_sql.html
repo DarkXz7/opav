@@ -46,7 +46,9 @@
                     
                     <div class="mb-3">
                         <label for="name" class="form-label">Nombre de la conexión</label>
-                        <input type="text" class="form-control" id="name" name="name" placeholder="Mi conexión SQL" required>
+                        <input type="text" class="form-control" id="name" name="name" 
+                               value="{{ form_data.name|default:'' }}" 
+                               placeholder="Mi conexión SQL" required>
                         <div class="form-text">Un nombre descriptivo para identificar esta conexión.</div>
                         <div class="invalid-feedback">
                             Por favor ingresa un nombre para la conexión.
@@ -55,7 +57,9 @@
                     
                     <div class="mb-3">
                         <label for="server" class="form-label">Servidor</label>
-                        <input type="text" class="form-control" id="server" name="server" placeholder="ejemplo.database.windows.net" required>
+                        <input type="text" class="form-control" id="server" name="server" 
+                               value="{{ form_data.server|default:'' }}" 
+                               placeholder="ejemplo.database.windows.net" required>
                         <div class="form-text">Nombre o dirección IP del servidor SQL Server.</div>
                         <div class="invalid-feedback">
                             Por favor ingresa el servidor.
@@ -64,13 +68,16 @@
                     
                     <div class="mb-3">
                         <label for="port" class="form-label">Puerto</label>
-                        <input type="text" class="form-control" id="port" name="port" value="1433">
+                        <input type="text" class="form-control" id="port" name="port" 
+                               value="{{ form_data.port|default:'1433' }}">
                         <div class="form-text">Puerto SQL Server (por defecto: 1433).</div>
                     </div>
                     
                     <div class="mb-3">
                         <label for="database" class="form-label">Base de datos</label>
-                        <input type="text" class="form-control" id="database" name="database" placeholder="NombreBaseDatos" required>
+                        <input type="text" class="form-control" id="database" name="database" 
+                               value="{{ form_data.database|default:'' }}" 
+                               placeholder="NombreBaseDatos" required>
                         <div class="form-text">Nombre de la base de datos a la que deseas conectarte.</div>
                         <div class="invalid-feedback">
                             Por favor ingresa el nombre de la base de datos.
@@ -79,7 +86,9 @@
                     
                     <div class="mb-3">
                         <label for="username" class="form-label">Usuario</label>
-                        <input type="text" class="form-control" id="username" name="username" placeholder="usuario" required>
+                        <input type="text" class="form-control" id="username" name="username" 
+                               value="{{ form_data.username|default:'' }}" 
+                               placeholder="usuario" required>
                         <div class="invalid-feedback">
                             Por favor ingresa el nombre de usuario.
                         </div>
