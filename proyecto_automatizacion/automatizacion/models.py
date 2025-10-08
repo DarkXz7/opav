@@ -96,7 +96,7 @@ class MigrationProcess(models.Model):
     selected_columns = models.JSONField(null=True, blank=True)  # Dict de columnas seleccionadas por tabla/hoja
     
     # Destino de datos
-    target_db_name = models.CharField(max_length=100, default='default')
+    target_db_name = models.CharField(max_length=100, default='DestinoAutomatizacion')
     target_db_connection = models.ForeignKey(DatabaseConnection, on_delete=models.SET_NULL, null=True, blank=True, related_name='target_processes')
     target_table = models.CharField(max_length=100, blank=True, null=True)  # Tabla de destino
     
@@ -157,8 +157,11 @@ class MigrationProcess(models.Model):
             if self.source.source_type == 'excel':
                 # EXCEL: Procesar cada hoja por separado con tabla independiente
                 success, result_info = self._process_excel_sheets_individually(tracker, proceso_id, tiempo_inicio, parametros_proceso)
+            elif self.source.source_type == 'sql':
+                # SQL: Procesar cada tabla por separado con tabla independiente
+                success, result_info = self._process_sql_tables_individually(tracker, proceso_id, tiempo_inicio, parametros_proceso)
             else:
-                # SQL/CSV: Usar lógica original (una sola tabla)
+                # CSV: Usar lógica original (una sola tabla)
                 datos_origen = self._extract_source_data()
                 tiempo_fin = timezone.now()
                 duracion_extraccion = (tiempo_fin - tiempo_inicio).total_seconds()
@@ -261,15 +264,47 @@ class MigrationProcess(models.Model):
                     # Mostrar detalle de cada hoja
                     for hoja in result_info.get('detalles_hojas_exitosas', []):
                         print(f"      🍃 Hoja '{hoja['sheet_name']}': {hoja['registros']} registros → Tabla '{hoja['table_name']}'")
+                elif result_info.get('process_type') == 'sql_multi_table':
+                    # SQL: Múltiples tablas procesadas
+                    tablas_exitosas = result_info.get('tablas_procesadas', 0)
+                    total_registros = result_info.get('total_registros', 0)
+                    duracion_total = result_info.get('duracion_total', 0)
+                    
+                    detalles_exito = f"SQL procesado: {tablas_exitosas} tablas exitosas, {total_registros} registros totales, {duracion_total:.2f}s"
+                    
+                    # Crear log de éxito para SQL
+                    MigrationLog.log(
+                        process=self,
+                        stage='completion',
+                        message=detalles_exito,
+                        level='success',
+                        rows=total_registros,
+                        duration=int(duracion_total * 1000),
+                        user='sistema'
+                    )
+                    
+                    tracker.finalizar_exito(detalles_exito)
+                    
+                    print(f"✅ Proceso SQL '{self.name}' ejecutado exitosamente.")
+                    print(f"   📋 Tablas procesadas: {tablas_exitosas}")
+                    print(f"   📊 Total registros: {total_registros}")
+                    print(f"   ⏱️ Duración total: {duracion_total:.2f}s")
+                    print(f"   🔗 ProcesoID principal: {proceso_id}")
+                    
+                    # Mostrar detalle de cada tabla
+                    detalles_tablas = result_info.get('detalles_tablas', {})
+                    for tabla_nombre, registros_tabla in detalles_tablas.items():
+                        nombre_tabla_destino = f"{self.name.replace(' ', '_')}_{tabla_nombre}"
+                        print(f"      📊 Tabla '{tabla_nombre}': {registros_tabla} registros → Tabla '{nombre_tabla_destino}'")
                 else:
-                    # SQL/CSV: Una sola tabla
+                    # CSV: Una sola tabla
                     table_name = result_info.get('table_name', 'Desconocida')
                     resultado_id = result_info.get('resultado_id', 'N/A')
                     registros_procesados = len(datos_origen) if 'datos_origen' in locals() and isinstance(datos_origen, list) else 1
                     
                     detalles_exito = f"Tabla: {table_name}, ResultadoID: {resultado_id}, Registros: {registros_procesados}"
                     
-                    # Crear log de éxito para SQL/CSV
+                    # Crear log de éxito para CSV
                     MigrationLog.log(
                         process=self,
                         stage='completion',
@@ -295,8 +330,13 @@ class MigrationProcess(models.Model):
                     error_msg = result_info.get('error', 'Error desconocido procesando Excel')
                     hojas_fallidas = result_info.get('hojas_con_error', 0)
                     error_completo = f"Error procesando Excel '{self.name}': {error_msg}, {hojas_fallidas} hojas fallaron"
+                elif result_info.get('process_type') == 'sql_processing' or result_info.get('process_type') == 'sql_multi_table':
+                    # Error en SQL
+                    error_msg = result_info.get('error', 'Error desconocido procesando SQL')
+                    tablas_fallidas = result_info.get('tablas_con_error', 0)
+                    error_completo = f"Error procesando SQL '{self.name}': {error_msg}, {tablas_fallidas} tablas fallaron"
                 else:
-                    # Error en SQL/CSV
+                    # Error en CSV
                     error_msg = result_info.get('error', 'Error desconocido')
                     table_name = result_info.get('table_name', 'No determinada')
                     error_completo = f"Error en transferencia a tabla '{table_name}': {error_msg}"
@@ -555,62 +595,26 @@ class MigrationProcess(models.Model):
                     
                     tracker_hoja.actualizar_estado('EXTRAYENDO_DATOS', f'Extraídos {registros_hoja} registros de la hoja {sheet_name}')
                     
-                    # 3. Preparar resumen específico de esta hoja
+                    # 3. Calcular duración de procesamiento
                     hoja_fin = timezone.now()
                     duracion_hoja = (hoja_fin - hoja_inicio).total_seconds()
                     
-                    resumen_hoja = {
-                        'proceso_ejecutado': nombre_proceso_hoja,
-                        'hoja_excel': sheet_name,
-                        'archivo_origen': self.source.name,
-                        'timestamp_ejecucion': hoja_inicio.isoformat(),
-                        'estadisticas': {
-                            'total_registros': registros_hoja,
-                            'total_columnas': len(df.columns),
-                            'columnas_procesadas': list(df.columns),
-                            'duracion_extraccion_segundos': round(duracion_hoja, 2),
-                            'tipo_fuente': 'excel'
-                        },
-                        'configuracion': {
-                            'hoja_seleccionada': sheet_name,
-                            'columnas_seleccionadas': (self.selected_columns.get(sheet_name, []) if isinstance(self.selected_columns, dict) 
-                                                     else json.loads(self.selected_columns).get(sheet_name, [])) if self.selected_columns else list(df.columns),
-                            'base_datos_destino': self.target_db_name or 'DestinoAutomatizacion'
-                        }
-                    }
-                    
-                    # Metadatos específicos de la hoja
-                    metadata_hoja = {
-                        'migration_process_id': self.id,
-                        'process_name': self.name,
-                        'sheet_name': sheet_name,
-                        'parent_process_id': main_proceso_id,
-                        'source_type': 'excel',
-                        'source_id': self.source.id,
-                        'execution_timestamp': hoja_inicio.isoformat(),
-                        'file_name': self.source.name,
-                        'columns_count': len(df.columns),
-                        'selected_columns': (self.selected_columns.get(sheet_name, []) if isinstance(self.selected_columns, dict) else json.loads(self.selected_columns).get(sheet_name, [])) if self.selected_columns else list(df.columns),
-                        'target_db_name': self.target_db_name,
-                        'extraction_duration_seconds': duracion_hoja
-                    }
-                    
-                    # 4. Transferir datos de esta hoja a su tabla individual
+                    # 4. Transferir DATOS REALES de esta hoja a su tabla individual
                     tracker_hoja.actualizar_estado('TRANSFIRIENDO', f'Creando tabla individual para hoja {sheet_name}')
                     
-                    # Normalizar nombre de hoja para usar como nombre de tabla
-                    table_friendly_name = self._normalize_table_name(sheet_name)
+                    # Generar nombre de tabla con nomenclatura dinámica: Proceso_Hoja
+                    nombre_tabla_destino = f"{self.name}_{sheet_name}".replace(' ', '_').replace('-', '_')
+                    # Limpiar caracteres especiales del nombre
+                    import re
+                    nombre_tabla_destino = re.sub(r'[^\w]', '_', nombre_tabla_destino)
+                    nombre_tabla_destino = re.sub(r'_+', '_', nombre_tabla_destino).strip('_')
                     
-                    success_hoja, result_info_hoja = data_transfer_service.transfer_to_dynamic_table(
-                        process_name=table_friendly_name,  # ✅ NOMBRE LIMPIO PARA LA TABLA
+                    # ✅ GUARDAR DATOS REALES DEL DATAFRAME (NO METADATOS)
+                    success_hoja, result_info_hoja = self._save_dataframe_to_destination(
+                        df_datos=df,  # DataFrame con los datos reales
+                        nombre_tabla_destino=nombre_tabla_destino,  # Nombre dinámico de la tabla
                         proceso_id=proceso_id_hoja,
-                        datos_procesados=resumen_hoja,
-                        usuario_responsable='sistema_automatizado',
-                        metadata=metadata_hoja,
-                        recreate_table=True,
-                        estado_proceso='COMPLETADO',
-                        tipo_operacion=f'MIGRACION_EXCEL_{table_friendly_name.upper().replace(" ", "_")}',
-                        registros_afectados=registros_hoja
+                        usuario_responsable='sistema_automatizado'
                     )
                     
                     # DEBUG: Logging adicional para detectar el problema
@@ -776,7 +780,14 @@ class MigrationProcess(models.Model):
             
             # Filtrar columnas si están especificadas
             if self.selected_columns:
-                selected_cols = json.loads(self.selected_columns)
+                # Manejar tanto lista como JSON string para selected_columns
+                if isinstance(self.selected_columns, (list, dict)):
+                    selected_cols = self.selected_columns
+                elif isinstance(self.selected_columns, str):
+                    selected_cols = json.loads(self.selected_columns)
+                else:
+                    selected_cols = []
+                
                 if isinstance(selected_cols, list) and selected_cols:
                     df = df[selected_cols]
             
@@ -791,15 +802,66 @@ class MigrationProcess(models.Model):
         """Extrae datos de base de datos SQL"""
         from .utils import SQLServerConnector
         import json
+        import pyodbc
         
         try:
             if not self.source.connection:
                 return {'error': 'No hay conexión SQL configurada'}
             
-            # Obtener tablas seleccionadas
-            selected_tables = json.loads(self.selected_tables) if self.selected_tables else []
+            # Obtener tablas seleccionadas - manejar tanto lista como JSON string
+            if isinstance(self.selected_tables, list):
+                selected_tables = self.selected_tables
+            elif isinstance(self.selected_tables, str):
+                try:
+                    # Intentar parsearlo como JSON array
+                    selected_tables = json.loads(self.selected_tables)
+                except json.JSONDecodeError:
+                    # Si falla JSON parsing, tratarlo como string simple
+                    selected_tables = [self.selected_tables]
+            else:
+                selected_tables = self.selected_tables if self.selected_tables else []
+            
+            # Si no hay tablas seleccionadas o las tablas seleccionadas no existen,
+            # intentar usar la tabla de prueba
+            from .sql_validation import get_valid_tables, ensure_test_table
+            
+            # Variable para seguimiento si se usa tabla de prueba
+            using_fallback = False
+            
+            # Verificar si hay tablas seleccionadas
             if not selected_tables:
-                return {'error': 'No hay tablas seleccionadas'}
+                print(f"⚠️ No hay tablas seleccionadas en proceso '{self.name}', intentando usar tabla de prueba...")
+                TEST_TABLE_NAME = ensure_test_table(self.source.connection)
+                if TEST_TABLE_NAME:
+                    selected_tables = [TEST_TABLE_NAME]
+                    self.selected_tables = selected_tables
+                    self.save()
+                    using_fallback = True
+                    print(f"✅ Configurado proceso para usar tabla de prueba: {TEST_TABLE_NAME}")
+                else:
+                    return {'error': 'No hay tablas seleccionadas y no se pudo crear tabla de prueba'}
+            else:
+                # Verificar si las tablas seleccionadas realmente existen
+                valid_tables = get_valid_tables(self.source.connection, selected_tables)
+                
+                if not valid_tables:
+                    print(f"⚠️ Ninguna de las tablas seleccionadas existe en la BD. Intentando usar tabla de prueba...")
+                    TEST_TABLE_NAME = ensure_test_table(self.source.connection)
+                    if TEST_TABLE_NAME:
+                        selected_tables = [TEST_TABLE_NAME]
+                        self.selected_tables = selected_tables
+                        self.save()
+                        using_fallback = True
+                        print(f"✅ Configurado proceso para usar tabla de prueba: {TEST_TABLE_NAME}")
+                    else:
+                        return {'error': 'Las tablas seleccionadas no existen y no se pudo crear tabla de prueba'}
+                else:
+                    # Actualizar a solo tablas válidas si es diferente
+                    if len(valid_tables) != len(selected_tables):
+                        print(f"⚠️ Solo {len(valid_tables)} de {len(selected_tables)} tablas existen. Actualizando selección...")
+                        selected_tables = valid_tables
+                        self.selected_tables = selected_tables
+                        self.save()
             
             connection = self.source.connection
             connector = SQLServerConnector(
@@ -816,24 +878,66 @@ class MigrationProcess(models.Model):
             all_data = []
             
             for table_info in selected_tables:
-                table_name = table_info.get('name') or table_info.get('full_name', '')
-                if not table_name:
+                # Determinar identificador y esquema de la tabla
+                if isinstance(table_info, dict):
+                    full_name = table_info.get('full_name') or table_info.get('name')
+                elif isinstance(table_info, str):
+                    full_name = table_info
+                else:
+                    full_name = None
+
+                if not full_name:
                     continue
-                
+
+                full_name = str(full_name).strip()
+                schema_name = None
+                base_table_name = full_name
+
+                if '.' in full_name:
+                    parts = [p for p in full_name.split('.') if p]
+                    if len(parts) >= 2:
+                        schema_name = parts[-2]
+                        base_table_name = parts[-1]
+                    else:
+                        base_table_name = parts[-1]
+
+                if schema_name:
+                    table_key = f"{schema_name}.{base_table_name}"
+                    safe_table_ref = f"[{schema_name}].[{base_table_name}]"
+                else:
+                    table_key = base_table_name
+                    safe_table_ref = f"[{base_table_name}]"
+
                 # Obtener datos de la tabla
                 try:
                     cursor = connector.conn.cursor()
                     
                     # Construir consulta SELECT
                     if self.selected_columns:
-                        selected_cols = json.loads(self.selected_columns).get(table_name, [])
+                        # Manejar tanto diccionario como JSON string para selected_columns
+                        if isinstance(self.selected_columns, dict):
+                            selected_cols = (
+                                self.selected_columns.get(table_key)
+                                or self.selected_columns.get(full_name)
+                                or self.selected_columns.get(base_table_name, [])
+                            )
+                        elif isinstance(self.selected_columns, str):
+                            cols_dict = json.loads(self.selected_columns)
+                            selected_cols = (
+                                cols_dict.get(table_key)
+                                or cols_dict.get(full_name)
+                                or cols_dict.get(base_table_name, [])
+                            )
+                        else:
+                            selected_cols = []
+                        
                         if selected_cols:
                             columns = ', '.join([f'[{col}]' for col in selected_cols])
-                            query = f"SELECT {columns} FROM [{table_name}]"
+                            query = f"SELECT {columns} FROM {safe_table_ref}"
                         else:
-                            query = f"SELECT * FROM [{table_name}]"
+                            query = f"SELECT * FROM {safe_table_ref}"
                     else:
-                        query = f"SELECT * FROM [{table_name}]"
+                        query = f"SELECT * FROM {safe_table_ref}"
                     
                     cursor.execute(query)
                     
@@ -847,7 +951,7 @@ class MigrationProcess(models.Model):
                     table_data = []
                     for row_idx, row in enumerate(rows):
                         row_dict = {
-                            'table_name': table_name,
+                            'table_name': table_key,
                             'row_index': row_idx
                         }
                         for col_idx, value in enumerate(row):
@@ -856,11 +960,50 @@ class MigrationProcess(models.Model):
                     
                     all_data.extend(table_data)
                     
+                    # Agregar entrada de metadatos para la tabla
+                    all_data.append({
+                        'table_name': table_key,
+                        'schema': schema_name,
+                        'columns': column_names,
+                        'row_count': len(rows),
+                        'metadata': True
+                    })
+                    
                 except Exception as table_error:
                     # Agregar error pero continuar con otras tablas
                     all_data.append({
-                        'table_name': table_name,
+                        'table_name': table_key,
                         'error': f'Error procesando tabla: {str(table_error)}'
+                    })
+            
+            # Si no se agregó ninguna entrada (por ejemplo, tabla vacía), crear metadatos mínimos
+            if all_data == []:
+                for table_info in selected_tables:
+                    if isinstance(table_info, dict):
+                        full_name = table_info.get('full_name') or table_info.get('name')
+                    else:
+                        full_name = table_info
+                    if not full_name:
+                        continue
+                    meta_schema = None
+                    base_name = full_name
+                    if '.' in full_name:
+                        parts = [p for p in full_name.split('.') if p]
+                        if len(parts) >= 2:
+                            meta_schema = parts[-2]
+                            base_name = parts[-1]
+                        else:
+                            base_name = parts[-1]
+                    if meta_schema:
+                        table_key_meta = f"{meta_schema}.{base_name}"
+                    else:
+                        table_key_meta = base_name
+                    all_data.append({
+                        'table_name': table_key_meta,
+                        'schema': meta_schema,
+                        'columns': [],
+                        'row_count': 0,
+                        'metadata': True
                     })
             
             return all_data
@@ -872,6 +1015,234 @@ class MigrationProcess(models.Model):
                 connector.disconnect()
             except:
                 pass
+
+    def _process_sql_tables_individually(self, tracker, proceso_id, tiempo_inicio, parametros_proceso):
+        """
+        Procesa cada tabla SQL por separado, creando una tabla destino individual
+        para cada tabla origen con los datos reales de la tabla (NO metadatos del proceso)
+        
+        Args:
+            tracker: Instancia de ProcessTracker para logging
+            proceso_id: UUID del proceso
+            tiempo_inicio: Timestamp de inicio
+            parametros_proceso: Dict con parámetros del proceso
+            
+        Returns:
+            Tuple[bool, Dict]: (éxito, información_resultado)
+        """
+        import pandas as pd
+        import json
+        from django.utils import timezone
+        
+        try:
+            # Asegurarse de que exista la tabla de prueba antes de intentar extracción
+            from .sql_validation import ensure_test_table
+            
+            # Verificar conexión antes de continuar
+            if not self.source or not self.source.connection:
+                error_msg = "No hay conexión SQL configurada"
+                print(f"❌ ERROR: {error_msg}")
+                return False, {
+                    'success': False,
+                    'error': error_msg,
+                    'process_type': 'sql_processing'
+                }
+            
+            # Asegurar que la tabla de prueba esté disponible como fallback
+            TEST_TABLE_NAME = ensure_test_table(self.source.connection)
+            if not TEST_TABLE_NAME:
+                print("⚠️ No se pudo crear la tabla de prueba, pero intentaremos continuar...")
+            
+            # Extraer datos de todas las tablas SQL
+            datos_sql = self._extract_sql_data()
+            tiempo_extraccion = timezone.now()
+            duracion_extraccion = (tiempo_extraccion - tiempo_inicio).total_seconds()
+            
+            if isinstance(datos_sql, dict) and 'error' in datos_sql:
+                # Si hay error con las tablas seleccionadas, intentar usar tabla de prueba
+                if datos_sql['error'] == 'No hay tablas seleccionadas' and TEST_TABLE_NAME:
+                    print(f"⚠️ Usando tabla de prueba {TEST_TABLE_NAME} como fallback...")
+                    self.selected_tables = [TEST_TABLE_NAME]
+                    self.save()
+                    
+                    # Reintentar extracción con la tabla de prueba
+                    datos_sql = self._extract_sql_data()
+                    if isinstance(datos_sql, dict) and 'error' in datos_sql:
+                        return False, {
+                            'success': False,
+                            'error': f"Error incluso con tabla de prueba: {datos_sql['error']}",
+                            'process_type': 'sql_processing'
+                        }
+                else:
+                    return False, {
+                        'success': False,
+                        'error': datos_sql['error'],
+                        'process_type': 'sql_processing'
+                    }
+            
+            # Agrupar datos por tabla
+            tablas_data = {}
+            total_registros = 0
+            tablas_con_error = []
+            tablas_columnas = {}
+            
+            for registro in datos_sql:
+                if registro.get('metadata'):
+                    nombre_tabla_meta = registro.get('table_name')
+                    if nombre_tabla_meta:
+                        tablas_columnas[nombre_tabla_meta] = registro.get('columns', [])
+                        if registro.get('row_count', 0) == 0 and nombre_tabla_meta not in tablas_data:
+                            tablas_data[nombre_tabla_meta] = []
+                    continue
+                
+                if 'error' in registro:
+                    print(f"⚠️  Error en tabla {registro.get('table_name', 'desconocida')}: {registro['error']}")
+                    # Guardar errores de tablas para reportar después
+                    tablas_con_error.append({
+                        'tabla': registro.get('table_name', 'desconocida'),
+                        'error': registro['error']
+                    })
+                    continue
+                    
+                table_name = registro.get('table_name')
+                if not table_name:
+                    continue
+                
+                if table_name not in tablas_data:
+                    tablas_data[table_name] = []
+                
+                # Eliminar campos de control para obtener datos limpios
+                datos_limpios = {k: v for k, v in registro.items() 
+                               if k not in ['table_name', 'row_index']}
+                tablas_data[table_name].append(datos_limpios)
+                total_registros += 1
+                
+            # Si todas las tablas tienen errores y no hay datos válidos, reportar error
+            if tablas_con_error and len(tablas_con_error) == len(datos_sql):
+                error_msg = f"Error en todas las tablas seleccionadas"
+                if len(tablas_con_error) == 1:
+                    error_msg = f"Error en tabla {tablas_con_error[0]['tabla']}: {tablas_con_error[0]['error']}"
+                return False, {
+                    'success': False,
+                    'error': error_msg,
+                    'process_type': 'sql_processing',
+                    'tablas_con_error': tablas_con_error
+                }
+            
+            # Si no hay tablas con datos pero sí con metadatos (tablas vacías), no es un error
+            if not tablas_data and not tablas_columnas:
+                error_msg = "No se encontraron tablas válidas o con datos para procesar."
+                tracker.finalizar('ERROR', error_msg)
+                return False, {
+                    'success': False,
+                    'error': error_msg,
+                    'process_type': 'sql_processing',
+                }
+            
+            # Asegurar que todas las tablas de 'tablas_columnas' existan en 'tablas_data'
+            for nombre_tabla in tablas_columnas:
+                if nombre_tabla not in tablas_data:
+                    tablas_data[nombre_tabla] = []
+            
+            # Actualizar estado
+            tracker.actualizar_estado('PROCESANDO_DATOS', 
+                f'Procesando {len(tablas_data)} tablas SQL con {total_registros} registros totales')
+            
+            # Procesar cada tabla por separado
+            tablas_exitosas = 0
+            tablas_con_error = 0
+            
+            for nombre_tabla, datos_tabla in tablas_data.items():
+                print(f"\n📊 Procesando tabla SQL: {nombre_tabla}")
+                print(f"   📈 Registros encontrados: {len(datos_tabla)}")
+                
+                # Convertir datos a DataFrame
+                df_datos = pd.DataFrame(datos_tabla)
+                if df_datos.empty and nombre_tabla in tablas_columnas:
+                    df_datos = pd.DataFrame(columns=tablas_columnas[nombre_tabla])
+                
+                if df_datos.empty:
+                    print(f"⚠️  Tabla {nombre_tabla} está vacía en origen, se creará estructura vacía en destino...")
+                
+                print(f"   📋 Columnas detectadas: {list(df_datos.columns)}")
+                
+                # Generar nombre de tabla destino: proceso_nombreTabla (sin caracteres problemáticos)
+                nombre_tabla_normalizada = nombre_tabla.replace('.', '_')
+                nombre_tabla_destino = f"{self.name.replace(' ', '_')}_{nombre_tabla_normalizada}"
+                
+                # Actualizar estado para esta tabla específica
+                duracion_tabla = (timezone.now() - tiempo_extraccion).total_seconds()
+                tracker.actualizar_estado('GUARDANDO_DATOS', 
+                    f'Guardando tabla {nombre_tabla} ({len(datos_tabla)} registros)')
+                
+                # Guardar DataFrame en la base de datos destino
+                exito_guardado, resultado_guardado = self._save_dataframe_to_destination(
+                    df_datos=df_datos,
+                    nombre_tabla_destino=nombre_tabla_destino,
+                    proceso_id=proceso_id,
+                    usuario_responsable='sistema_automatizado'
+                )
+                
+                if exito_guardado:
+                    tablas_exitosas += 1
+                    print(f"✅ Tabla {nombre_tabla} guardada exitosamente como {nombre_tabla_destino}")
+                else:
+                    tablas_con_error += 1
+                    print(f"❌ Error guardando tabla {nombre_tabla}: {resultado_guardado.get('error', 'Error desconocido')}")
+            
+            # Calcular duración total
+            tiempo_fin = timezone.now()
+            duracion_total = (tiempo_fin - tiempo_inicio).total_seconds()
+            
+            # Determinar éxito general
+            success = tablas_exitosas > 0
+            
+            # Crear resultado final
+            result_info = {
+                'success': success,
+                'process_type': 'sql_multi_table',
+                'tablas_procesadas': tablas_exitosas,
+                'tablas_con_error': tablas_con_error,
+                'total_registros': total_registros,
+                'duracion_total': duracion_total,
+                'duracion_extraccion': duracion_extraccion,
+                'proceso_id': proceso_id,
+                'detalles_tablas': {
+                    tabla: len(datos) for tabla, datos in tablas_data.items()
+                }
+            }
+            
+            # Actualizar estado final
+            if success:
+                tracker.finalizar('COMPLETADO', 
+                    f'SQL procesado: {tablas_exitosas} tablas exitosas, {total_registros} registros totales')
+            else:
+                tracker.finalizar('ERROR', 
+                    f'Error procesando SQL: {tablas_con_error} tablas con error')
+            
+            return success, result_info
+            
+        except Exception as e:
+            # Crear un mensaje de error más descriptivo
+            error_msg = f"Error procesando tablas SQL individualmente: {str(e)}"
+            print(f"❌ {error_msg}")
+            
+            # Incluir detalles adicionales sobre las tablas con problemas
+            detalles_error = f"Error procesando SQL '{self.name}': "
+            if 'tablas_con_error' in locals() and tablas_con_error:
+                detalles_error += ", ".join([f"Tabla {t['tabla']}: {t['error']}" for t in tablas_con_error[:3]])
+                if len(tablas_con_error) > 3:
+                    detalles_error += f" y {len(tablas_con_error) - 3} errores más"
+            else:
+                detalles_error += str(e)
+            
+            tracker.finalizar('ERROR', detalles_error)
+            
+            return False, {
+                'success': False,
+                'error': error_msg,
+                'process_type': 'sql_processing'
+            }
     
     def to_dict(self):
         """
@@ -979,6 +1350,215 @@ class MigrationProcess(models.Model):
                 })
         
         return df
+
+    def _save_dataframe_to_destination(self, df_datos, nombre_tabla_destino, proceso_id, usuario_responsable):
+        """
+        Guarda un DataFrame directamente a la base de datos destino como una tabla
+        con la estructura exacta del DataFrame (NO metadatos del proceso)
+        
+        Args:
+            df_datos: DataFrame de Pandas con los datos reales del archivo/tabla
+            nombre_tabla_destino: Nombre que tendrá la tabla en la BD destino
+            proceso_id: UUID del proceso para logging
+            usuario_responsable: Usuario responsable del proceso
+            
+        Returns:
+            Tuple[bool, Dict]: (éxito, información_resultado)
+        """
+        import pandas as pd
+        import pyodbc
+        from django.conf import settings
+        
+        try:
+            # Usar conexión directa pyodbc para evitar problemas con Django ORM
+            destino_config = settings.DATABASES['destino']
+            
+            # Construir connection string con parámetros correctos
+            server = destino_config.get('HOST', 'localhost')
+            port = destino_config.get('PORT')
+            database = destino_config.get('NAME', 'DestinoAutomatizacion')
+            username = destino_config.get('USER', '')
+            password = destino_config.get('PASSWORD', '')
+            
+            # Construir servidor con puerto solo si está especificado
+            if port:
+                server_with_port = f"{server},{port}"
+            else:
+                server_with_port = server
+            
+            connection_string = (
+                f"DRIVER={{ODBC Driver 17 for SQL Server}};"
+                f"SERVER={server_with_port};"
+                f"DATABASE={database};"
+                f"UID={username};"
+                f"PWD={password};"
+                f"TrustServerCertificate=yes;"
+            )
+            
+            conn = pyodbc.connect(connection_string)
+            cursor = conn.cursor()
+            
+            # 1. Crear tabla con estructura del DataFrame
+            print(f"📋 Creando tabla '{nombre_tabla_destino}' con estructura del DataFrame...")
+            
+            # Generar SQL CREATE TABLE basado en las columnas del DataFrame
+            create_table_sql = self._generate_create_table_sql(df_datos, nombre_tabla_destino)
+            
+            # Eliminar tabla si existe y crearla nueva
+            cursor.execute(f"IF OBJECT_ID('{nombre_tabla_destino}', 'U') IS NOT NULL DROP TABLE [{nombre_tabla_destino}]")
+            cursor.execute(create_table_sql)
+            
+            print(f"✅ Tabla '{nombre_tabla_destino}' creada exitosamente")
+            print(f"   📊 Columnas: {list(df_datos.columns)}")
+            print(f"   📈 Filas a insertar: {len(df_datos)}")
+            
+            # 2. Insertar datos del DataFrame
+            registros_insertados = 0
+            if not df_datos.empty:
+                # Preparar SQL INSERT con columnas limpias
+                clean_columns_list = [col.replace(' ', '_').replace('-', '_') for col in df_datos.columns]
+                clean_columns_list = [''.join(c for c in col if c.isalnum() or c == '_') for col in clean_columns_list]
+                
+                columns_sql = ', '.join([f'[{col}]' for col in clean_columns_list])
+                placeholders = ', '.join(['?' for _ in clean_columns_list])
+                insert_sql = f"INSERT INTO [{nombre_tabla_destino}] ({columns_sql}) VALUES ({placeholders})"
+                
+                print(f"🔍 SQL INSERT: {insert_sql}")
+
+                # Convertir DataFrame a lista de tuplas para inserción masiva
+                valores_a_insertar = []
+                for _, row in df_datos.iterrows():
+                    valores_fila = []
+                    for col in df_datos.columns:
+                        valor = row[col]
+                        if pd.isna(valor):
+                            valores_fila.append(None)
+                        elif isinstance(valor, pd.Timestamp):
+                            valores_fila.append(valor.to_pydatetime())
+                        elif hasattr(valor, 'item'):
+                            valores_fila.append(valor.item())
+                        else:
+                            valores_fila.append(valor)
+                    valores_a_insertar.append(tuple(valores_fila))
+
+                try:
+                    if valores_a_insertar:
+                        # Usar executemany para una inserción eficiente
+                        cursor.executemany(insert_sql, valores_a_insertar)
+                        registros_insertados = cursor.rowcount if cursor.rowcount != -1 else len(valores_a_insertar)
+                        print(f"   ✅ Inserción masiva exitosa. Registros afectados: {registros_insertados}")
+                    else:
+                        print("   ⚠️ No hay datos para insertar.")
+
+                except Exception as insert_error:
+                    # Si executemany falla, intentar inserción fila por fila para depurar
+                    print(f"⚠️  Error en inserción masiva: {insert_error}. Intentando fila por fila...")
+                    registros_insertados = 0
+                    for i, valores_fila in enumerate(valores_a_insertar):
+                        try:
+                            cursor.execute(insert_sql, valores_fila)
+                            registros_insertados += 1
+                        except Exception as single_insert_error:
+                            print(f"❌ Error insertando fila {i}: {single_insert_error}")
+                            print(f"   📊 Valores: {valores_fila}")
+                            # Opcional: decidir si continuar o detenerse
+                            # continue
+            else:
+                print("   ⚠️ DataFrame vacío, no se insertarán datos.")
+            
+            # Confirmar transacción
+            conn.commit()
+            
+            print(f"✅ Datos insertados exitosamente:")
+            print(f"   📊 Registros insertados: {registros_insertados}")
+            print(f"   📋 Tabla final: '{nombre_tabla_destino}'")
+            
+            # Cerrar conexión
+            cursor.close()
+            conn.close()
+            
+            return True, {
+                'success': True,
+                'table_name': nombre_tabla_destino,
+                'records_inserted': registros_insertados,
+                'columns': list(df_datos.columns),
+                'proceso_id': proceso_id
+            }
+            
+        except Exception as e:
+            error_msg = f"Error guardando DataFrame en tabla '{nombre_tabla_destino}': {str(e)}"
+            print(f"❌ {error_msg}")
+            
+            # Cerrar conexiones en caso de error
+            try:
+                if 'cursor' in locals():
+                    cursor.close()
+                if 'conn' in locals():
+                    conn.close()
+            except:
+                pass
+            
+            return False, {
+                'success': False,
+                'error': error_msg,
+                'table_name': nombre_tabla_destino,
+                'proceso_id': proceso_id
+            }
+
+    def _generate_create_table_sql(self, df, table_name):
+        """
+        Genera SQL CREATE TABLE basado en las columnas y tipos del DataFrame
+        
+        Args:
+            df: DataFrame de Pandas
+            table_name: Nombre de la tabla a crear
+            
+        Returns:
+            str: SQL CREATE TABLE statement
+        """
+        import pandas as pd
+        
+        columns_definitions = []
+        
+        for column in df.columns:
+            # Limpiar nombre de columna para SQL
+            clean_column = str(column).replace(' ', '_').replace('-', '_')
+            clean_column = ''.join(c for c in clean_column if c.isalnum() or c == '_')
+            
+            # Determinar tipo SQL basado en el tipo del DataFrame
+            dtype = df[column].dtype
+            
+            if pd.api.types.is_integer_dtype(dtype):
+                sql_type = 'INT'
+            elif pd.api.types.is_float_dtype(dtype):
+                sql_type = 'FLOAT'
+            elif pd.api.types.is_bool_dtype(dtype):
+                sql_type = 'BIT'
+            elif pd.api.types.is_datetime64_any_dtype(dtype):
+                sql_type = 'DATETIME2'
+            else:
+                # Para strings y otros tipos, usar NVARCHAR
+                # Calcular longitud máxima de la columna
+                max_length = df[column].astype(str).str.len().max()
+                if pd.isna(max_length) or max_length == 0:
+                    max_length = 255
+                elif max_length < 50:
+                    max_length = 50
+                elif max_length > 4000:
+                    max_length = 4000
+                
+                sql_type = f'NVARCHAR({int(max_length)})'
+            
+            columns_definitions.append(f'[{clean_column}] {sql_type} NULL')
+        
+        # Construir SQL CREATE TABLE
+        create_sql = f"""
+        CREATE TABLE [{table_name}] (
+            {', '.join(columns_definitions)}
+        )
+        """
+        
+        return create_sql
 
 class MigrationLog(models.Model):
     """

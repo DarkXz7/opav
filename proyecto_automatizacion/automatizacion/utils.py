@@ -520,7 +520,7 @@ class TargetDBManager:
     """
     def __init__(self, target_db=None):
         """Inicializa el gestor de base de datos destino"""
-        self.target_db = target_db or 'default'  # Usar la BD configurada por defecto si no se especifica
+        self.target_db = target_db or 'destino'  # Usar la BD DestinoAutomatizacion por defecto si no se especifica
     
     def create_table_if_not_exists(self, table_name, column_definitions):
         """

@@ -629,7 +629,7 @@ def save_process(request):
             process.selected_tables = data.get('selected_tables')
         
         process.selected_columns = data.get('selected_columns')
-        process.target_db_name = data.get('target_db', 'default')
+        process.target_db_name = data.get('target_db', 'DestinoAutomatizacion')
         
         process.save()
         

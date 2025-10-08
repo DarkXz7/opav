@@ -225,6 +225,33 @@ class ProcessTracker:
         # Usar el método eficiente de actualización
         self._actualizar_estado('ERROR', error=error)
         return self.proceso_id
+        
+    def finalizar(self, estado, detalles=None):
+        """
+        Registra la finalización de un proceso con un estado específico
+        
+        Args:
+            estado (str): Estado final del proceso (COMPLETADO, ERROR, etc)
+            detalles (str, optional): Detalles adicionales
+            
+        Returns:
+            str: ID del proceso
+        """
+        duracion = int(round(time.time() - self.tiempo_inicio))
+        self._actualizar_historial(estado, detalles=detalles)
+        
+        # Solo actualizar el registro existente
+        if self._registro:
+            with transaction.atomic():
+                # Finalizar el registro existente
+                self._registro.Estado = estado[:20]
+                self._registro.ParametrosEntrada = json.dumps(self._obtener_parametros())
+                self._registro.DuracionSegundos = duracion
+                self._registro.ProcesoID = self.proceso_id  # Asegurar que el ProcesoID esté presente
+                self._registro.MensajeError = detalles if detalles else f"Proceso finalizado con estado: {estado}"
+                self._registro.save(using='logs')
+        
+        return self.proceso_id
 
 
 def registrar_evento_unificado(nombre_evento, estado, parametros=None, error=None):
