@@ -102,6 +102,7 @@ class MigrationProcess(models.Model):
     
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)  # Se actualiza automáticamente en cada save()
     last_run = models.DateTimeField(null=True, blank=True)
     
     # Opciones de rollback y checkpoint

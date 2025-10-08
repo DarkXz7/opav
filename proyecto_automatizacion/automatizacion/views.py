@@ -50,8 +50,43 @@ def new_process(request):
     return render(request, 'automatizacion/new_process.html', context)
 
 def list_processes(request):
-    """Lista todos los procesos de migración guardados"""
-    processes = MigrationProcess.objects.all().order_by('-created_at')
+    """Lista todos los procesos de migración guardados, ordenados por última modificación"""
+    from automatizacion.logs.models_logs import ProcesoLog
+    from django.db.models import Q
+    
+    # Ordenar por updated_at (última modificación) para mostrar procesos recientemente editados primero
+    processes = MigrationProcess.objects.all().order_by('-updated_at')
+    
+    # Enriquecer cada proceso con información de última ejecución
+    for process in processes:
+        if process.source.source_type == 'sql':
+            # Para SQL: buscar en ProcesoLog
+            last_log = ProcesoLog.objects.filter(
+                Q(MigrationProcessID=process.id) | Q(NombreProceso=process.name)
+            ).order_by('-FechaEjecucion').first()
+            
+            if last_log:
+                process.last_execution_date = last_log.FechaEjecucion
+                process.last_execution_status = last_log.Estado
+            else:
+                process.last_execution_date = None
+                process.last_execution_status = 'No ejecutado'
+        else:
+            # Para Excel/CSV: usar MigrationLog
+            last_log = process.logs.order_by('-timestamp').first()
+            if last_log:
+                process.last_execution_date = last_log.timestamp
+                # MigrationLog usa 'level' (success, error, info) no 'status'
+                if last_log.level == 'success':
+                    process.last_execution_status = 'completed'
+                elif last_log.level == 'error' or last_log.level == 'critical':
+                    process.last_execution_status = 'failed'
+                else:
+                    process.last_execution_status = last_log.level
+            else:
+                process.last_execution_date = None
+                process.last_execution_status = 'No ejecutado'
+    
     return render(request, 'automatizacion/list_processes.html', {'processes': processes})
 
 def view_process(request, process_id):

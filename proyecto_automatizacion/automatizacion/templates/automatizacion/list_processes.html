@@ -36,8 +36,9 @@
                                 <tr>
                                     <th>Nombre</th>
                                     <th>Fuente</th>
-                                    <th>Tabla Destino</th>
-                                    <th>Fecha Creación</th>
+                                    <th>Tablas/Hojas</th>
+                                    <th>Última Modificación</th>
+                                    <th>Última Ejecución</th>
                                     <th>Estado</th>
                                     <th>Acciones</th>
                                 </tr>
@@ -52,31 +53,75 @@
                                     </td>
                                     <td>
                                         {% if process.source.source_type == 'excel' %}
-                                            <span class="badge bg-success">Excel</span>
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-file-excel me-1"></i>Excel
+                                            </span>
+                                            <br>
+                                            <small class="text-muted">{{ process.source.name }}</small>
                                         {% elif process.source.source_type == 'csv' %}
-                                            <span class="badge bg-warning">CSV</span>
+                                            <span class="badge bg-warning">
+                                                <i class="fas fa-file-csv me-1"></i>CSV
+                                            </span>
+                                            <br>
+                                            <small class="text-muted">{{ process.source.name }}</small>
                                         {% elif process.source.source_type == 'sql' %}
-                                            <span class="badge bg-info">SQL</span>
+                                            <span class="badge bg-info">
+                                                <i class="fas fa-database me-1"></i>SQL Server
+                                            </span>
+                                            <br>
+                                            <small class="text-muted">{{ process.source.connection.server }}</small>
                                         {% else %}
                                             <span class="badge bg-secondary">{{ process.source.source_type }}</span>
                                         {% endif %}
-                                        {{ process.source.name }}
                                     </td>
-                                    <td>{{ process.target_table }}</td>
-                                    <td>{{ process.created_at|date:"j M Y, H:i" }}</td>
                                     <td>
-                                        {% if process.latest_log %}
-                                            {% if process.latest_log.status == 'completed' %}
-                                                <span class="badge bg-success">Completado</span>
-                                            {% elif process.latest_log.status == 'failed' %}
-                                                <span class="badge bg-danger">Error</span>
-                                            {% elif process.latest_log.status == 'started' %}
-                                                <span class="badge bg-warning">En Proceso</span>
-                                            {% else %}
-                                                <span class="badge bg-secondary">{{ process.latest_log.status }}</span>
-                                            {% endif %}
+                                        {% if process.selected_tables %}
+                                            <span class="badge bg-primary">{{ process.selected_tables|length }} tabla{{ process.selected_tables|length|pluralize }}</span>
+                                            <br>
+                                            <small class="text-muted">{{ process.selected_tables.0|truncatechars:25 }}{% if process.selected_tables|length > 1 %}, ...{% endif %}</small>
+                                        {% elif process.selected_sheets %}
+                                            <span class="badge bg-success">{{ process.selected_sheets|length }} hoja{{ process.selected_sheets|length|pluralize }}</span>
+                                            <br>
+                                            <small class="text-muted">{{ process.selected_sheets.0|truncatechars:25 }}{% if process.selected_sheets|length > 1 %}, ...{% endif %}</small>
+                                        {% elif process.target_table %}
+                                            <code class="small">{{ process.target_table }}</code>
                                         {% else %}
-                                            <span class="badge bg-secondary">No ejecutado</span>
+                                            <span class="text-muted small">Sin configurar</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <small>{{ process.updated_at|date:"d/m/Y" }}</small>
+                                        <br>
+                                        <small class="text-muted">{{ process.updated_at|date:"H:i" }}</small>
+                                    </td>
+                                    <td>
+                                        {% if process.last_execution_date %}
+                                            <small>{{ process.last_execution_date|date:"d/m/Y" }}</small>
+                                            <br>
+                                            <small class="text-muted">{{ process.last_execution_date|date:"H:i" }}</small>
+                                        {% else %}
+                                            <span class="text-muted small">Nunca ejecutado</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if process.last_execution_status == 'Completado' or process.last_execution_status == 'completed' %}
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check-circle me-1"></i>Completado
+                                            </span>
+                                        {% elif process.last_execution_status == 'Error en ejecución' or process.last_execution_status == 'failed' or process.last_execution_status == 'error' %}
+                                            <span class="badge bg-danger">
+                                                <i class="fas fa-exclamation-circle me-1"></i>Error
+                                            </span>
+                                        {% elif process.last_execution_status == 'En ejecución' or process.last_execution_status == 'running' or process.last_execution_status == 'started' %}
+                                            <span class="badge bg-warning text-dark">
+                                                <i class="fas fa-spinner fa-spin me-1"></i>En Proceso
+                                            </span>
+                                        {% elif process.last_execution_status == 'No ejecutado' %}
+                                            <span class="badge bg-secondary">
+                                                <i class="fas fa-clock me-1"></i>No ejecutado
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{{ process.last_execution_status }}</span>
                                         {% endif %}
                                     </td>
                                     <td>
