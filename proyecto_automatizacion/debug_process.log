@@ -548,3 +548,34 @@ Traceback (most recent call last):
            ^^^^^^^^^^^^^^
 AttributeError: 'list' object has no attribute 'get'
 2025-10-08 10:14:35,245 - INFO - C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\automatizacion\templatetags\custom_filters.py changed, reloading.
+2025-10-08 10:16:09,471 - INFO - ================================================================================
+2025-10-08 10:16:09,471 - INFO - INICIANDO PROCESAMIENTO EXCEL MULTIHOJA
+2025-10-08 10:16:09,472 - INFO - Proceso: maimamamama
+2025-10-08 10:16:09,472 - INFO - Archivo: C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\temp_files\Hoja de cálculo sin título (1)_IvBeBiB.xlsx
+2025-10-08 10:16:09,473 - INFO - ================================================================================
+2025-10-08 10:16:09,473 - INFO - Hojas seleccionadas: ['hoja 2', 'Hoja 1']
+2025-10-08 10:16:09,474 - INFO - Columnas seleccionadas: {'Hoja 1': ['ID', 'nombre'], 'hoja 2': ['talla']}
+2025-10-08 10:18:59,001 - INFO - ================================================================================
+2025-10-08 10:18:59,001 - INFO - INICIANDO PROCESAMIENTO EXCEL MULTIHOJA
+2025-10-08 10:18:59,001 - INFO - Proceso: maimamamama
+2025-10-08 10:18:59,002 - INFO - Archivo: C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\temp_files\Hoja de cálculo sin título (1)_IvBeBiB.xlsx
+2025-10-08 10:18:59,002 - INFO - ================================================================================
+2025-10-08 10:18:59,002 - INFO - Hojas seleccionadas: ['Hoja 1', 'hoja 2']
+2025-10-08 10:18:59,003 - INFO - Columnas seleccionadas: {'Hoja 1': ['nombre'], 'hoja 2': ['talla']}
+2025-10-08 10:23:35,148 - INFO - C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\automatizacion\views.py changed, reloading.
+2025-10-08 10:27:50,502 - INFO - ================================================================================
+2025-10-08 10:27:50,503 - INFO - INICIANDO PROCESAMIENTO EXCEL MULTIHOJA
+2025-10-08 10:27:50,504 - INFO - Proceso: maimamamama
+2025-10-08 10:27:50,504 - INFO - Archivo: C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\temp_files\Hoja de cálculo sin título (1)_IvBeBiB.xlsx
+2025-10-08 10:27:50,504 - INFO - ================================================================================
+2025-10-08 10:27:50,505 - INFO - Hojas seleccionadas: ['Hoja 1', 'hoja 2']
+2025-10-08 10:27:50,505 - INFO - Columnas seleccionadas: {'Hoja 1': ['ID', 'nombre', 'edad'], 'hoja 2': ['talla']}
+2025-10-08 10:28:24,406 - INFO - ================================================================================
+2025-10-08 10:28:24,407 - INFO - INICIANDO PROCESAMIENTO EXCEL MULTIHOJA
+2025-10-08 10:28:24,407 - INFO - Proceso: maimamamama
+2025-10-08 10:28:24,408 - INFO - Archivo: C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\temp_files\Hoja de cálculo sin título (1)_IvBeBiB.xlsx
+2025-10-08 10:28:24,408 - INFO - ================================================================================
+2025-10-08 10:28:24,409 - INFO - Hojas seleccionadas: ['Hoja 1', 'hoja 2']
+2025-10-08 10:28:24,409 - INFO - Columnas seleccionadas: {'Hoja 1': ['ID', 'nombre', 'edad'], 'hoja 2': ['genero', 'talla']}
+2025-10-08 10:29:27,671 - WARNING - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-10-08 11:08:07,115 - INFO - C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\automatizacion\templatetags\custom_filters.py changed, reloading.

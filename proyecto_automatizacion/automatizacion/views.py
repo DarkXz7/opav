@@ -57,18 +57,31 @@ def list_processes(request):
 def view_process(request, process_id):
     """Muestra los detalles de un proceso guardado"""
     process = get_object_or_404(MigrationProcess, pk=process_id)
-    logs = process.logs.all().order_by('-timestamp')[:10]
     
-    # Obtener detalles según tipo de fuente
-    context = {
-        'process': process,
-        'logs': logs
-    }
-    
-    if process.source.source_type == 'excel' or process.source.source_type == 'csv':
-        context['file_path'] = process.source.file_path
-    elif process.source.source_type == 'sql':
-        context['connection'] = process.source.connection
+    # 🔧 CORRECCIÓN: Para procesos SQL, obtener logs de ProcesoLog filtrando por MigrationProcessID o nombre
+    if process.source.source_type == 'sql':
+        from automatizacion.logs.models_logs import ProcesoLog
+        from django.db.models import Q
+        
+        # Filtrar por MigrationProcessID (si existe) o por nombre del proceso
+        logs = ProcesoLog.objects.filter(
+            Q(MigrationProcessID=process.id) | Q(NombreProceso=process.name)
+        ).order_by('-FechaEjecucion')[:10]
+        
+        context = {
+            'process': process,
+            'logs': logs,
+            'connection': process.source.connection,
+            'is_sql_process': True  # Flag para el template
+        }
+    else:
+        # Para Excel/CSV usar MigrationLog (relacionado con el proceso)
+        logs = process.logs.all().order_by('-timestamp')[:10]
+        context = {
+            'process': process,
+            'logs': logs,
+            'file_path': process.source.file_path if hasattr(process.source, 'file_path') else None
+        }
         
     return render(request, 'automatizacion/view_process.html', context)
 
@@ -921,14 +934,33 @@ def edit_process(request, process_id):
     
     # Obtener información específica según tipo de fuente
     if process.source.source_type == 'excel':
-        # Para Excel, obtener información de hojas disponibles
+        # Para Excel, obtener información de hojas disponibles Y TODOS LOS CAMPOS ORIGINALES
         context['file_path'] = process.source.file_path
         try:
             from .utils import ExcelProcessor
             processor = ExcelProcessor(process.source.file_path)
+            
+            # Obtener todas las hojas disponibles
             context['available_sheets'] = processor.get_sheet_names()
+            
+            # ✅ NUEVO: Obtener TODOS los campos originales de cada hoja
+            all_sheets_data = {}
+            for sheet_name in context['available_sheets']:
+                columns = processor.get_sheet_columns(sheet_name)
+                preview = processor.get_sheet_preview(sheet_name)
+                
+                all_sheets_data[sheet_name] = {
+                    'columns': columns,  # Lista completa de columnas originales
+                    'preview': preview,
+                    'total_rows': preview.get('total_rows', 0) if preview else 0,
+                    'column_count': len(columns) if columns else 0
+                }
+            
+            context['all_sheets_data'] = all_sheets_data
+            
         except Exception as e:
             context['available_sheets'] = []
+            context['all_sheets_data'] = {}
             messages.warning(request, f'No se pudieron cargar las hojas del archivo: {str(e)}')
             
     elif process.source.source_type == 'csv':

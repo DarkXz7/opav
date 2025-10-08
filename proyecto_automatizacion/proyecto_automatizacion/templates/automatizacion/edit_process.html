@@ -82,29 +82,85 @@
                 <!-- Sección de Columnas por Hoja -->
                 <div id="columns-section" class="mt-4">
                     <h6><i class="fas fa-columns me-1"></i>Columnas por Hoja:</h6>
+                    <small class="text-muted d-block mb-3">
+                        ✅ Los campos marcados se procesarán. Los desmarcados se ignorarán. 
+                        Puedes reactivar campos que hayas quitado anteriormente.
+                    </small>
                     <div id="columns-container">
-                        {% if process.selected_columns %}
-                        {% for sheet_name, columns in process.selected_columns.items %}
-                        <div class="columns-for-sheet mb-3 p-3 border rounded" data-sheet="{{ sheet_name }}">
-                            <h7><strong><i class="fas fa-table me-1"></i>{{ sheet_name }}</strong></h7>
-                            <div class="row mt-2">
-                                {% for column in columns %}
-                                <div class="col-md-4 mb-2">
-                                    <div class="form-check">
-                                        <input class="form-check-input column-checkbox" 
-                                               type="checkbox" checked
-                                               data-sheet="{{ sheet_name }}" 
-                                               value="{{ column }}"
-                                               id="col_{{ sheet_name|slugify }}_{{ forloop.counter }}">
-                                        <label class="form-check-label" for="col_{{ sheet_name|slugify }}_{{ forloop.counter }}">
-                                            <i class="fas fa-columns me-1"></i>{{ column }}
-                                        </label>
+                        {% if all_sheets_data %}
+                        {% for sheet_name, sheet_data in all_sheets_data.items %}
+                        <div class="columns-for-sheet mb-3 p-3 border rounded bg-light" data-sheet="{{ sheet_name }}">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-table me-2 text-primary"></i>
+                                    <strong>{{ sheet_name }}</strong>
+                                    <span class="badge bg-info ms-2">{{ sheet_data.columns|length }} campos disponibles</span>
+                                </h6>
+                                <button type="button" class="btn btn-sm btn-outline-secondary toggle-all-columns" data-sheet="{{ sheet_name }}">
+                                    <i class="fas fa-check-double me-1"></i>Marcar/Desmarcar todos
+                                </button>
+                            </div>
+                            <div class="row mt-3">
+                                {% for column in sheet_data.columns %}
+                                {% if process.selected_columns and sheet_name in process.selected_columns %}
+                                    {% with selected_cols=process.selected_columns|get_item:sheet_name %}
+                                        {% if column.name in selected_cols %}
+                                            {% comment %}Campo está seleccionado actualmente{% endcomment %}
+                                            <div class="col-md-4 mb-2">
+                                                <div class="form-check">
+                                                    <input class="form-check-input column-checkbox" 
+                                                           type="checkbox" checked
+                                                           data-sheet="{{ sheet_name }}" 
+                                                           value="{{ column.name }}"
+                                                           id="col_{{ sheet_name|slugify }}_{{ forloop.counter }}">
+                                                    <label class="form-check-label fw-bold text-success" for="col_{{ sheet_name|slugify }}_{{ forloop.counter }}">
+                                                        <i class="fas fa-check-circle me-1"></i>{{ column.name }}
+                                                        <small class="text-muted">({{ column.sql_type }})</small>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        {% else %}
+                                            {% comment %}Campo NO está seleccionado - mostrar desmarcado{% endcomment %}
+                                            <div class="col-md-4 mb-2">
+                                                <div class="form-check">
+                                                    <input class="form-check-input column-checkbox" 
+                                                           type="checkbox"
+                                                           data-sheet="{{ sheet_name }}" 
+                                                           value="{{ column.name }}"
+                                                           id="col_{{ sheet_name|slugify }}_{{ forloop.counter }}">
+                                                    <label class="form-check-label text-muted" for="col_{{ sheet_name|slugify }}_{{ forloop.counter }}">
+                                                        <i class="fas fa-circle me-1"></i>{{ column.name }}
+                                                        <small class="text-muted">({{ column.sql_type }})</small>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                    {% endwith %}
+                                {% else %}
+                                    {% comment %}Primera vez - no hay columnas seleccionadas{% endcomment %}
+                                    <div class="col-md-4 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input column-checkbox" 
+                                                   type="checkbox"
+                                                   data-sheet="{{ sheet_name }}" 
+                                                   value="{{ column.name }}"
+                                                   id="col_{{ sheet_name|slugify }}_{{ forloop.counter }}">
+                                            <label class="form-check-label text-muted" for="col_{{ sheet_name|slugify }}_{{ forloop.counter }}">
+                                                <i class="fas fa-circle me-1"></i>{{ column.name }}
+                                                <small class="text-muted">({{ column.sql_type }})</small>
+                                            </label>
+                                        </div>
                                     </div>
-                                </div>
+                                {% endif %}
                                 {% endfor %}
                             </div>
                         </div>
                         {% endfor %}
+                        {% else %}
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Selecciona las hojas y haz clic en "Cargar Columnas" para ver los campos disponibles.
+                            </div>
                         {% endif %}
                     </div>
                 </div>
@@ -229,6 +285,41 @@ $(document).ready(function() {
 
     // Manejar selección de columnas
     $(document).on('change', '.column-checkbox', function() {
+        updateHiddenFields();
+        
+        // Actualizar estilo del label según esté marcado o no
+        let $label = $(this).siblings('label');
+        if ($(this).is(':checked')) {
+            $label.removeClass('text-muted').addClass('fw-bold text-success');
+            $label.find('i').removeClass('fa-circle').addClass('fa-check-circle');
+        } else {
+            $label.removeClass('fw-bold text-success').addClass('text-muted');
+            $label.find('i').removeClass('fa-check-circle').addClass('fa-circle');
+        }
+    });
+    
+    // ✅ NUEVO: Botón para marcar/desmarcar todos los campos de una hoja
+    $(document).on('click', '.toggle-all-columns', function() {
+        let sheet = $(this).data('sheet');
+        let $checkboxes = $(`.column-checkbox[data-sheet="${sheet}"]`);
+        
+        // Determinar si marcamos o desmarcamos (basado en el primero)
+        let shouldCheck = !$checkboxes.first().is(':checked');
+        
+        $checkboxes.each(function() {
+            $(this).prop('checked', shouldCheck);
+            
+            // Actualizar estilo del label
+            let $label = $(this).siblings('label');
+            if (shouldCheck) {
+                $label.removeClass('text-muted').addClass('fw-bold text-success');
+                $label.find('i').removeClass('fa-circle').addClass('fa-check-circle');
+            } else {
+                $label.removeClass('fw-bold text-success').addClass('text-muted');
+                $label.find('i').removeClass('fa-check-circle').addClass('fa-circle');
+            }
+        });
+        
         updateHiddenFields();
     });
 

@@ -54,7 +54,7 @@
                 <p><strong>Tipo de origen:</strong> {{ process.source.get_source_type_display }}</p>
                 <p><strong>Base de datos destino:</strong> 
                     {% if process.target_db_connection %}
-                        {{ process.target_db_connection.database }}
+                        {{ process.target_db_connection.selected_database|default:process.target_db_name }}
                     {% elif process.target_db_name == 'default' %}
                         DestinoAutomatizacion
                     {% else %}
@@ -95,7 +95,7 @@
                 {% else %}
                     <p><strong>Conexión:</strong> {{ connection.name }}</p>
                     <p><strong>Servidor:</strong> {{ connection.server }}</p>
-                    <p><strong>Base de datos:</strong> {{ connection.database }}</p>
+                    <p><strong>Base de datos:</strong> {{ process.source.connection.selected_database|default:"No especificada" }}</p>
                     {% if process.selected_tables %}
                         <p><strong>Tablas seleccionadas:</strong></p>
                         <ul>
@@ -220,27 +220,58 @@
                                             </div>
                                             <div class="col-md-4">
                                                 <div class="bg-light p-3 rounded">
-                                                    <h6 class="mb-2">
+                                                    <h6 class="mb-3">
                                                         <i class="fas fa-info-circle me-1"></i>Información
                                                     </h6>
-                                                    <p class="small mb-1">
-                                                        <strong>Origen:</strong> 
+                                                    
+                                                    {# Sección de ORIGEN #}
+                                                    <div class="mb-3 pb-2 border-bottom">
+                                                        <p class="small mb-1 text-muted">
+                                                            <i class="fas fa-download me-1"></i><strong>ORIGEN</strong>
+                                                        </p>
                                                         {% if process.source.source_type == 'excel' %}
-                                                            Hoja "{{ item_name }}"
+                                                            <p class="small mb-1">
+                                                                <strong>Archivo:</strong> 
+                                                                <span class="text-primary">{{ process.source.name }}</span>
+                                                            </p>
+                                                            <p class="small mb-0">
+                                                                <strong>Hoja:</strong> 
+                                                                <span class="badge bg-info">{{ item_name }}</span>
+                                                            </p>
                                                         {% else %}
-                                                            Tabla "{{ item_name }}"
+                                                            <p class="small mb-1">
+                                                                <strong>Servidor:</strong> 
+                                                                <span class="text-primary">{{ process.source.connection.server }}</span>
+                                                            </p>
+                                                            <p class="small mb-1">
+                                                                <strong>Base de datos:</strong> 
+                                                                <span class="badge bg-primary">{{ process.source.connection.selected_database|default:"No especificada" }}</span>
+                                                            </p>
+                                                            <p class="small mb-0">
+                                                                <strong>Tabla:</strong> 
+                                                                <code class="small">{{ item_name }}</code>
+                                                            </p>
                                                         {% endif %}
-                                                    </p>
-                                                    <p class="small mb-1">
-                                                        <strong>Destino:</strong> 
-                                                        <code>{{ process.name|slugify }}_{{ item_name|slugify }}</code>
-                                                    </p>
-                                                    <p class="small mb-1">
-                                                        <strong>Base de datos:</strong> {{ process.target_db_name|default:"DestinoAutomatizacion" }}
-                                                    </p>
-                                                    <p class="small mb-0">
-                                                        <strong>Columnas:</strong> {{ columns|length }}
-                                                    </p>
+                                                    </div>
+                                                    
+                                                    {# Sección de DESTINO #}
+                                                    <div class="mb-2">
+                                                        <p class="small mb-1 text-muted">
+                                                            <i class="fas fa-upload me-1"></i><strong>DESTINO</strong>
+                                                        </p>
+                                                        <p class="small mb-1">
+                                                            <strong>Base de datos:</strong> 
+                                                            <span class="badge bg-success">{{ process.target_db_name|default:"DestinoAutomatizacion" }}</span>
+                                                        </p>
+                                                        <p class="small mb-1">
+                                                            <strong>Tabla:</strong> 
+                                                            <code class="small">{{ process.name|slugify }}_{{ item_name|slugify }}</code>
+                                                        </p>
+                                                        <p class="small mb-0">
+                                                            <strong>Columnas:</strong> 
+                                                            <span class="badge bg-secondary">{{ columns|length }}</span>
+                                                        </p>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -275,41 +306,91 @@
                             <thead>
                                 <tr>
                                     <th>Fecha</th>
-                                    <th>Etapa</th>
-                                    <th>Mensaje</th>
-                                    <th>Filas</th>
-                                    <th>Duración</th>
+                                    {% if is_sql_process %}
+                                        <th>Estado</th>
+                                        <th>Duración</th>
+                                        <th>Proceso ID</th>
+                                    {% else %}
+                                        <th>Etapa</th>
+                                        <th>Mensaje</th>
+                                        <th>Filas</th>
+                                        <th>Duración</th>
+                                    {% endif %}
                                     <th>Nivel</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for log in logs %}
                                     <tr>
-                                        <td>{{ log.timestamp|date:"d/m/Y H:i:s" }}</td>
-                                        <td>
-                                            <span class="badge bg-secondary">{{ log.get_stage_display }}</span>
-                                        </td>
-                                        <td>{{ log.message|truncatechars:50 }}</td>
-                                        <td>{{ log.rows_processed|default:"0" }}</td>
-                                        <td>
-                                            {% if log.duration_ms %}
-                                                {{ log.duration_ms }}ms
-                                            {% else %}
-                                                -
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            <span class="badge {% if log.level == 'success' %}bg-success{% elif log.level == 'error' or log.level == 'critical' %}bg-danger{% elif log.level == 'warning' %}bg-warning{% else %}bg-info{% endif %}">
-                                                {{ log.get_level_display }}
-                                            </span>
-                                            {% if log.error_message %}
-                                                <button class="btn btn-sm btn-outline-danger ms-2" 
-                                                        data-bs-toggle="tooltip" 
-                                                        title="{{ log.error_message }}">
-                                                    <i class="fas fa-exclamation-circle"></i>
-                                                </button>
-                                            {% endif %}
-                                        </td>
+                                        {% if is_sql_process %}
+                                            {# Logs de ProcesoLog (SQL Server) #}
+                                            <td>{{ log.FechaEjecucion|date:"d/m/Y H:i:s" }}</td>
+                                            <td>
+                                                <span class="badge {% if 'Completado' in log.Estado %}bg-success{% elif 'Error' in log.Estado %}bg-danger{% elif 'Iniciando' in log.Estado or 'Iniciado' in log.Estado %}bg-info{% else %}bg-secondary{% endif %}">
+                                                    {{ log.Estado }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                {% if log.DuracionSegundos %}
+                                                    {{ log.DuracionSegundos }}s
+                                                {% else %}
+                                                    -
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <code class="small">{{ log.ProcesoID|slice:":8" }}...</code>
+                                            </td>
+                                            <td>
+                                                {% if 'Error' in log.Estado %}
+                                                    <span class="badge bg-danger">Error</span>
+                                                    {% if log.MensajeError %}
+                                                        <button class="btn btn-sm btn-outline-danger ms-2" 
+                                                                data-bs-toggle="tooltip" 
+                                                                title="{{ log.MensajeError }}">
+                                                            <i class="fas fa-exclamation-circle"></i>
+                                                        </button>
+                                                    {% endif %}
+                                                {% elif 'Completado' in log.Estado %}
+                                                    <span class="badge bg-success">Éxito</span>
+                                                    {% if log.MensajeError %}
+                                                        <button class="btn btn-sm btn-outline-info ms-2" 
+                                                                data-bs-toggle="tooltip" 
+                                                                title="{{ log.MensajeError }}">
+                                                            <i class="fas fa-info-circle"></i>
+                                                        </button>
+                                                    {% endif %}
+                                                {% else %}
+                                                    <span class="badge bg-info">En Proceso</span>
+                                                {% endif %}
+                                            </td>
+                                        {% else %}
+                                            {# Logs de MigrationLog (Excel/CSV) #}
+                                            <td>{{ log.timestamp|date:"d/m/Y H:i:s" }}</td>
+                                            <td>
+                                                <span class="badge bg-secondary">{{ log.get_stage_display }}</span>
+                                            </td>
+                                            <td>{{ log.message|truncatechars:50 }}</td>
+                                            <td>{{ log.rows_processed|default:"0" }}</td>
+                                            <td>
+                                                {% if log.duration_ms %}
+                                                    {{ log.duration_ms }}ms
+                                                {% else %}
+                                                    -
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <span class="badge {% if log.level == 'success' %}bg-success{% elif log.level == 'error' or log.level == 'critical' %}bg-danger{% elif log.level == 'warning' %}bg-warning{% else %}bg-info{% endif %}">
+                                                    {{ log.get_level_display }}
+                                                </span>
+                                                {% if log.error_message %}
+                                                    <button class="btn btn-sm btn-outline-danger ms-2" 
+                                                            data-bs-toggle="tooltip" 
+                                                            title="{{ log.error_message }}">
+                                                        <i class="fas fa-exclamation-circle"></i>
+                                                    </button>
+                                                {% endif %}
+                                            </td>
+                                        {% endif %}
                                     </tr>
                                 {% endfor %}
                             </tbody>
