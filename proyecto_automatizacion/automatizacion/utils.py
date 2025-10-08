@@ -86,6 +86,7 @@ class ExcelProcessor:
             
             return {
                 'columns': list(df.columns),
+                'sample_data': df.head(max_rows).values.tolist(),  # Convertir a lista de listas
                 'data': df.head(max_rows).to_dict('records'),
                 'total_rows': len(pd.read_excel(self.file_path, sheet_name=sheet_name)),
             }

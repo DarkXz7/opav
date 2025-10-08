@@ -21,6 +21,7 @@ from .frontend_logging import auto_log_frontend_process
 
 from .models import DataSourceType, DataSource, DatabaseConnection, MigrationProcess, MigrationLog
 from .utils import ExcelProcessor, CSVProcessor, SQLServerConnector, TargetDBManager
+from .web_logger_optimized import registrar_proceso_web, finalizar_proceso_web
 
 # Vistas principales
 
@@ -76,6 +77,7 @@ def run_process(request, process_id):
     Ejecuta un proceso guardado 
     ✅ CORREGIDO: Elimina logging duplicado y usa solo el log del modelo MigrationProcess.run()
     """
+    import traceback
     process = get_object_or_404(MigrationProcess, pk=process_id)
     
     try:
@@ -88,11 +90,16 @@ def run_process(request, process_id):
         messages.success(request, f'El proceso "{process.name}" se ha ejecutado correctamente y los datos se han guardado en DestinoAutomatizacion.')
         
     except Exception as e:
+        error_traceback = traceback.format_exc()
         print(f"❌ Error ejecutando proceso {process.name}: {str(e)}")
+        print(f"📋 Traceback completo:\n{error_traceback}")
         
-        # ✅ CORRECCIÓN: El manejo de errores ya está en process.run() 
-        # No necesitamos manejo adicional aquí
-        messages.error(request, f'Error al ejecutar el proceso: {str(e)}')
+        # Mostrar error detallado al usuario
+        error_msg = f'Error al ejecutar el proceso: {str(e)}'
+        if "KeyError" in str(e) and "name" in str(e):
+            error_msg += '\n\n⚠️ SOLUCIÓN: Este proceso fue creado antes de la corrección. Por favor, elimínalo y crea uno NUEVO seleccionando las hojas y columnas de nuevo.'
+        
+        messages.error(request, error_msg)
     
     return redirect('automatizacion:view_process', process_id=process.id)
 
@@ -199,6 +206,42 @@ def list_excel_sheets(request, source_id):
     }
     
     return render(request, 'automatizacion/list_excel_sheets.html', context)
+
+def list_excel_multi_sheet_columns(request, source_id):
+    """Nueva vista integrada para selección de hojas y columnas de Excel"""
+    source = get_object_or_404(DataSource, pk=source_id)
+    
+    if source.source_type != 'excel':
+        messages.error(request, 'Esta vista es solo para archivos Excel')
+        return redirect('automatizacion:index')
+        
+    processor = ExcelProcessor(source.file_path)
+    if not processor.load_file():
+        messages.error(request, 'No se pudo cargar el archivo Excel')
+        return redirect('automatizacion:upload_excel')
+        
+    sheets = processor.get_sheet_names()
+    
+    # Obtener datos completos de cada hoja: columnas y vista previa
+    sheets_data = {}
+    for sheet in sheets:
+        columns = processor.get_sheet_columns(sheet)
+        preview = processor.get_sheet_preview(sheet)
+        
+        sheets_data[sheet] = {
+            'columns': columns,
+            'preview': preview,
+            'total_rows': preview.get('total_rows', 0) if preview else 0,
+            'column_count': len(columns) if columns else 0
+        }
+    
+    context = {
+        'source': source,
+        'sheets': sheets,
+        'sheets_data': sheets_data
+    }
+    
+    return render(request, 'automatizacion/excel_multi_sheet_selector.html', context)
 
 def list_excel_columns(request, source_id, sheet_name):
     """Lista las columnas de una hoja de Excel o archivo CSV"""
@@ -530,9 +573,6 @@ def save_process(request):
     if request.method != 'POST':
         return JsonResponse({'error': 'Solo se permiten solicitudes POST'}, status=405)
     
-    # Iniciar tracking del proceso
-    from .web_logger_optimized import registrar_proceso_web, finalizar_proceso_web
-    
     try:
         data = json.loads(request.body)
         
@@ -668,6 +708,125 @@ def save_process(request):
                 error=e
             )
             print("DEBUG: Tracker finalizado con error")
+        
+        return JsonResponse({'error': str(e)}, status=500)
+
+@csrf_exempt
+def save_excel_multi_process(request):
+    """Guarda un proceso de Excel multi-hoja con selección independiente de columnas (endpoint AJAX)"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Solo se permiten solicitudes POST'}, status=405)
+    
+    try:
+        data = json.loads(request.body)
+        
+        # Obtener el nombre del proceso del frontend
+        process_name = data.get('name', 'Proceso Excel sin nombre')
+        
+        # LOG DETALLADO PARA DEPURACIÓN
+        print(f"DEBUG: save_excel_multi_process llamado por usuario {request.user}")
+        print(f"DEBUG: Datos recibidos: {data}")
+        print(f"DEBUG: Nombre del proceso: '{process_name}'")
+        
+        # Iniciar logger optimizado
+        print(f"DEBUG: Iniciando logger para proceso Excel multi-hoja '{process_name}'")
+        tracker, proceso_id = registrar_proceso_web(
+            nombre_proceso=f"Guardado de proceso Excel: {process_name}",
+            usuario=request.user,
+            datos_adicionales={
+                'process_name': process_name,
+                'source_id': data.get('source_id'),
+                'selected_sheets': data.get('selected_sheets'),
+                'selected_columns': data.get('selected_columns'),
+                'action': 'save_excel_multi_process',
+                'user_agent': request.META.get('HTTP_USER_AGENT', 'Unknown'),
+                'remote_addr': request.META.get('REMOTE_ADDR', 'Unknown')
+            }
+        )
+        print(f"DEBUG: Logger iniciado - tracker={tracker}, proceso_id={proceso_id}")
+        
+        # Validar datos requeridos
+        if not data.get('name') or not data.get('source_id'):
+            return JsonResponse({'error': 'Nombre y fuente de datos son obligatorios'}, status=400)
+        
+        if not data.get('selected_sheets') or not isinstance(data.get('selected_sheets'), list):
+            return JsonResponse({'error': 'Debe seleccionar al menos una hoja de Excel'}, status=400)
+            
+        if not data.get('selected_columns') or not isinstance(data.get('selected_columns'), dict):
+            return JsonResponse({'error': 'Debe seleccionar columnas para las hojas'}, status=400)
+        
+        # Obtener fuente de datos
+        source = get_object_or_404(DataSource, pk=data.get('source_id'))
+        
+        if source.source_type != 'excel':
+            return JsonResponse({'error': 'La fuente debe ser un archivo Excel'}, status=400)
+        
+        # Verificar si ya existe un proceso con el mismo nombre
+        existing_process = MigrationProcess.objects.filter(name=process_name).first()
+        if existing_process:
+            return JsonResponse({
+                'error': f'Ya existe un proceso con el nombre "{process_name}". Por favor, elija un nombre diferente.'
+            }, status=400)
+        
+        # Validar que las hojas seleccionadas tengan columnas
+        selected_sheets = data.get('selected_sheets')
+        selected_columns = data.get('selected_columns')
+        
+        for sheet in selected_sheets:
+            if sheet not in selected_columns or not selected_columns[sheet]:
+                return JsonResponse({
+                    'error': f'La hoja "{sheet}" no tiene columnas seleccionadas'
+                }, status=400)
+        
+        # Crear nuevo proceso
+        print(f"DEBUG: Creando nuevo proceso Excel multi-hoja: '{process_name}'")
+        process = MigrationProcess(
+            name=process_name,
+            description=data.get('description', ''),
+            source=source,
+            selected_sheets=selected_sheets,
+            selected_columns=selected_columns,
+            target_db_name=data.get('target_db', 'DestinoAutomatizacion'),
+            status='configured'
+        )
+        
+        process.save()
+        print(f"DEBUG: Proceso Excel multi-hoja guardado exitosamente con ID: {process.id}")
+        
+        # Finalizar logger con éxito
+        print(f"DEBUG: Finalizando logger con éxito para proceso Excel ID {process.id}")
+        finalizar_proceso_web(
+            tracker,
+            usuario=request.user,
+            exito=True,
+            detalles=f'Proceso Excel "{process.name}" guardado con {len(selected_sheets)} hojas y {sum(len(cols) for cols in selected_columns.values())} columnas totales'
+        )
+        print("DEBUG: Logger Excel multi-hoja finalizado exitosamente")
+        
+        return JsonResponse({
+            'success': True,
+            'process_id': process.id,
+            'proceso_id': proceso_id,  # UUID del sistema de logging
+            'message': f'Proceso Excel "{process_name}" guardado correctamente con {len(selected_sheets)} hojas'
+        })
+    
+    except Exception as e:
+        # LOG DETALLADO DEL ERROR
+        print(f"ERROR en save_excel_multi_process: {str(e)}")
+        print(f"ERROR tipo: {type(e).__name__}")
+        import traceback
+        print(f"ERROR traceback: {traceback.format_exc()}")
+        
+        # Finalizar logger con error
+        if 'tracker' in locals():
+            print("DEBUG: Finalizando tracker Excel con error...")
+            finalizar_proceso_web(
+                tracker,
+                usuario=request.user,
+                exito=False,
+                error=e
+            )
+            print("DEBUG: Tracker Excel finalizado con error")
         
         return JsonResponse({'error': str(e)}, status=500)
 

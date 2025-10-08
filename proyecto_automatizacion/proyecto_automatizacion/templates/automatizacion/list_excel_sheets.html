@@ -100,9 +100,21 @@
                         <a href="{% url 'automatizacion:upload_excel' %}" class="btn btn-outline-secondary">
                             <i class="fas fa-arrow-left me-2"></i>Atrás
                         </a>
-                        <button type="button" id="continueButton" class="btn btn-primary" disabled>
-                            Continuar<i class="fas fa-arrow-right ms-2"></i>
-                        </button>
+                        
+                        <div>
+                            <!-- Botón único para selección de hojas y columnas -->
+                            <a href="{% url 'automatizacion:list_excel_multi_sheet_columns' source.id %}" class="btn btn-success">
+                                <i class="fas fa-table me-2"></i>Seleccionar Hojas y Columnas
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info mt-3">
+                        <h6><i class="fas fa-info-circle me-2"></i>Información</h6>
+                        <p class="mb-0">
+                            Utiliza la interfaz integrada para seleccionar las hojas de Excel y configurar las columnas 
+                            de cada hoja de forma independiente con vista previa en tiempo real.
+                        </p>
                     </div>
                 </form>
             </div>

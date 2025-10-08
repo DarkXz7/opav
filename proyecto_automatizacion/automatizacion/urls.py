@@ -19,6 +19,7 @@ urlpatterns = [
     # Rutas para Excel/CSV
     path('excel/upload/', views.upload_excel, name='upload_excel'),
     path('excel/<int:source_id>/sheets/', views.list_excel_sheets, name='list_excel_sheets'),
+    path('excel/<int:source_id>/multi-config/', views.list_excel_multi_sheet_columns, name='list_excel_multi_sheet_columns'),
     path('excel/<int:source_id>/sheet/<str:sheet_name>/columns/', views.list_excel_columns, name='list_excel_columns'),
     
     # Rutas para SQL Server
@@ -32,6 +33,7 @@ urlpatterns = [
     
     # Rutas para API AJAX
     path('api/save_process/', views.save_process, name='save_process'),
+    path('api/save_excel_multi_process/', views.save_excel_multi_process, name='save_excel_multi_process'),
     path('api/delete_connection/<int:connection_id>/', views.delete_connection, name='delete_connection'),
     path('api/process/<int:process_id>/load_columns/', views.load_process_columns, name='load_process_columns'),
     

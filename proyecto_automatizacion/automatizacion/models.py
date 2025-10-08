@@ -321,6 +321,9 @@ class MigrationProcess(models.Model):
                     print(f"   📊 Registros procesados: {registros_procesados}")
                     print(f"   🆔 ResultadoID: {resultado_id}")
                     print(f"   🔗 ProcesoID (consistente): {proceso_id}")
+                
+                # ✅ CORRECCIÓN: Devolver el resultado exitoso
+                return success, result_info
             else:
                 self.status = 'failed'
                 
@@ -529,15 +532,39 @@ class MigrationProcess(models.Model):
         from .logs.process_tracker import ProcessTracker
         import pandas as pd
         import json
+        import logging
+        
+        # Configurar logging a archivo
+        log_file = 'c:\\Users\\migue\\OneDrive\\Escritorio\\DJANGO DE NUEVO\\opav\\proyecto_automatizacion\\debug_process.log'
+        logging.basicConfig(
+            level=logging.DEBUG,
+            format='%(asctime)s - %(levelname)s - %(message)s',
+            handlers=[
+                logging.FileHandler(log_file, mode='a'),
+                logging.StreamHandler()
+            ]
+        )
+        logger = logging.getLogger(__name__)
+        
+        logger.info(f"="*80)
+        logger.info(f"INICIANDO PROCESAMIENTO EXCEL MULTIHOJA")
+        logger.info(f"Proceso: {self.name}")
+        logger.info(f"Archivo: {self.source.file_path if self.source else 'N/A'}")
+        logger.info(f"="*80)
         
         try:
             if not self.source.file_path:
+                logger.error('No hay archivo Excel configurado')
                 raise Exception('No hay archivo Excel configurado')
             
             # Obtener hojas seleccionadas
             selected_sheets = self.selected_sheets if isinstance(self.selected_sheets, list) else (json.loads(self.selected_sheets) if self.selected_sheets else [])
             if not selected_sheets:
+                logger.error('No hay hojas seleccionadas en el Excel')
                 raise Exception('No hay hojas seleccionadas en el Excel')
+            
+            logger.info(f'Hojas seleccionadas: {selected_sheets}')
+            logger.info(f'Columnas seleccionadas: {self.selected_columns}')
             
             # Crear log de inicio de procesamiento Excel
             MigrationLog.log(
@@ -558,6 +585,7 @@ class MigrationProcess(models.Model):
             # PROCESAR CADA HOJA POR SEPARADO
             for sheet_name in selected_sheets:
                 hoja_inicio = timezone.now()
+                logger.info(f"🚀 Procesando hoja Excel: '{sheet_name}'")
                 print(f"🚀 Procesando hoja Excel: '{sheet_name}'")
                 
                 try:
@@ -577,21 +605,27 @@ class MigrationProcess(models.Model):
                     proceso_id_hoja = tracker_hoja.iniciar(parametros_hoja)
                     
                     # 2. Extraer datos específicos de esta hoja
+                    print(f"📊 DEBUG: Leyendo hoja '{sheet_name}' desde {self.source.file_path}")
                     df = pd.read_excel(self.source.file_path, sheet_name=sheet_name)
+                    print(f"📊 DEBUG: Hoja leída. Shape original: {df.shape}, Columnas: {list(df.columns)}")
                     
                     # Aplicar limpieza de datos (nombres de columnas y valores NaN)
                     df = self._clean_excel_dataframe(df)
+                    print(f"📊 DEBUG: Después de limpieza. Shape: {df.shape}, Columnas: {list(df.columns)}")
                     
                     # Filtrar columnas si están especificadas para esta hoja
                     if self.selected_columns:
                         selected_cols = (self.selected_columns.get(sheet_name, []) if isinstance(self.selected_columns, dict) 
                                        else json.loads(self.selected_columns).get(sheet_name, [])) if self.selected_columns else []
+                        print(f"📊 DEBUG: Columnas seleccionadas para '{sheet_name}': {selected_cols}")
                         if selected_cols:
                             df = df[selected_cols]
+                            print(f"📊 DEBUG: Después de filtrar columnas. Shape: {df.shape}, Columnas: {list(df.columns)}")
                     
                     # Convertir a diccionarios para transferencia
                     datos_hoja = df.to_dict('records')
                     registros_hoja = len(datos_hoja)
+                    print(f"📊 DEBUG: Datos convertidos. Registros: {registros_hoja}")
                     
                     tracker_hoja.actualizar_estado('EXTRAYENDO_DATOS', f'Extraídos {registros_hoja} registros de la hoja {sheet_name}')
                     
@@ -654,6 +688,13 @@ class MigrationProcess(models.Model):
                         error_msg_hoja = result_info_hoja.get('error', 'Error desconocido procesando hoja')
                         error_completo_hoja = f"Error procesando hoja '{sheet_name}': {error_msg_hoja}"
                         
+                        # LOG DETALLADO DEL ERROR
+                        print(f"❌ ============================================")
+                        print(f"❌ ERROR PROCESANDO HOJA '{sheet_name}'")
+                        print(f"❌ Error message: {error_msg_hoja}")
+                        print(f"❌ Result info completo: {result_info_hoja}")
+                        print(f"❌ ============================================")
+                        
                         # Registrar error para esta hoja
                         tracker_hoja.finalizar_error(Exception(error_completo_hoja))
                         
@@ -668,6 +709,22 @@ class MigrationProcess(models.Model):
                 except Exception as e_hoja:
                     # Error específico procesando esta hoja
                     error_hoja = f"Error procesando hoja '{sheet_name}': {str(e_hoja)}"
+                    logger.error(f"❌ ============================================")
+                    logger.error(f"❌ EXCEPCIÓN AL PROCESAR HOJA '{sheet_name}'")
+                    logger.error(f"❌ Tipo de error: {type(e_hoja).__name__}")
+                    logger.error(f"❌ Mensaje: {str(e_hoja)}")
+                    import traceback
+                    logger.error(f"❌ Traceback completo:")
+                    logger.error(traceback.format_exc())
+                    logger.error(f"❌ ============================================")
+                    
+                    print(f"❌ ============================================")
+                    print(f"❌ EXCEPCIÓN AL PROCESAR HOJA '{sheet_name}'")
+                    print(f"❌ Tipo de error: {type(e_hoja).__name__}")
+                    print(f"❌ Mensaje: {str(e_hoja)}")
+                    print(f"❌ Traceback completo:")
+                    traceback.print_exc()
+                    print(f"❌ ============================================")
                     
                     # Si tenemos tracker para esta hoja, registrar error
                     if 'tracker_hoja' in locals():
@@ -1370,6 +1427,10 @@ class MigrationProcess(models.Model):
         from django.conf import settings
         
         try:
+            print(f"🔍 DEBUG: Iniciando guardado de DataFrame '{nombre_tabla_destino}'")
+            print(f"🔍 DEBUG: DataFrame shape: {df_datos.shape}")
+            print(f"🔍 DEBUG: DataFrame columnas: {list(df_datos.columns)}")
+            
             # Usar conexión directa pyodbc para evitar problemas con Django ORM
             destino_config = settings.DATABASES['destino']
             
@@ -1395,8 +1456,12 @@ class MigrationProcess(models.Model):
                 f"TrustServerCertificate=yes;"
             )
             
+            print(f"🔍 DEBUG: Conectando a BD - Server: {server_with_port}, DB: {database}, User: {username}")
+            print(f"🔍 DEBUG: Connection string (sin pwd): DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={server_with_port};DATABASE={database};UID={username};TrustServerCertificate=yes;")
+            
             conn = pyodbc.connect(connection_string)
             cursor = conn.cursor()
+            print(f"✅ DEBUG: Conexión a BD exitosa")
             
             # 1. Crear tabla con estructura del DataFrame
             print(f"📋 Creando tabla '{nombre_tabla_destino}' con estructura del DataFrame...")

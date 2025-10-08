@@ -1,0 +1,550 @@
+2025-10-08 09:56:56,682 - INFO - ================================================================================
+2025-10-08 09:56:56,682 - INFO - INICIANDO PROCESAMIENTO EXCEL MULTIHOJA
+2025-10-08 09:56:56,683 - INFO - Proceso: motomototorewthyj
+2025-10-08 09:56:56,683 - INFO - Archivo: C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\temp_files\Hoja de cálculo sin título (1)_mOf3bG2.xlsx
+2025-10-08 09:56:56,684 - INFO - ================================================================================
+2025-10-08 09:56:57,567 - WARNING - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-10-08 09:57:08,233 - INFO - C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\automatizacion\models.py changed, reloading.
+2025-10-08 09:58:44,055 - INFO - ================================================================================
+2025-10-08 09:58:44,056 - INFO - INICIANDO PROCESAMIENTO EXCEL MULTIHOJA
+2025-10-08 09:58:44,057 - INFO - Proceso: motomototorewthyj
+2025-10-08 09:58:44,057 - INFO - Archivo: C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\temp_files\Hoja de cálculo sin título (1)_mOf3bG2.xlsx
+2025-10-08 09:58:44,057 - INFO - ================================================================================
+2025-10-08 09:58:44,058 - INFO - Hojas seleccionadas: ['Hoja 1']
+2025-10-08 09:58:44,058 - INFO - Columnas seleccionadas: {'Hoja 1': ["{'name': 'ID', 'type': 'int64', 'sql_type': 'INT'}", "{'name': 'nombre', 'type': 'object', 'sql_type': 'NVARCHAR(255)'}", "{'name': 'edad', 'type': 'int64', 'sql_type': 'INT'}"], 'hoja 2': ["{'name': 'talla', 'type': 'object', 'sql_type': 'NVARCHAR(255)'}"]}
+2025-10-08 09:58:44,889 - ERROR - Traceback (most recent call last):
+  File "C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\automatizacion\models.py", line 622, in _process_excel_sheets_individually
+    df = df[selected_cols]
+         ~~^^^^^^^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\frame.py", line 4113, in __getitem__
+    indexer = self.columns._get_indexer_strict(key, "columns")[1]
+              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\indexes\base.py", line 6212, in _get_indexer_strict
+    self._raise_if_missing(keyarr, indexer, axis_name)
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\indexes\base.py", line 6261, in _raise_if_missing
+    raise KeyError(f"None of [{key}] are in the [{axis_name}]")
+KeyError: "None of [Index(['{'name': 'ID', 'type': 'int64', 'sql_type': 'INT'}',\n       '{'name': 'nombre', 'type': 'object', 'sql_type': 'NVARCHAR(255)'}',\n       '{'name': 'edad', 'type': 'int64', 'sql_type': 'INT'}'],\n      dtype='object')] are in the [columns]"
+
+2025-10-08 09:58:45,112 - WARNING - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-10-08 09:59:20,517 - INFO - ================================================================================
+2025-10-08 09:59:20,517 - INFO - INICIANDO PROCESAMIENTO EXCEL MULTIHOJA
+2025-10-08 09:59:20,518 - INFO - Proceso: motomototorewthyj
+2025-10-08 09:59:20,518 - INFO - Archivo: C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\temp_files\Hoja de cálculo sin título (1)_mOf3bG2.xlsx
+2025-10-08 09:59:20,519 - INFO - ================================================================================
+2025-10-08 09:59:20,519 - INFO - Hojas seleccionadas: ['Hoja 1']
+2025-10-08 09:59:20,520 - INFO - Columnas seleccionadas: {'Hoja 1': ["{'name': 'ID', 'type': 'int64', 'sql_type': 'INT'}", "{'name': 'nombre', 'type': 'object', 'sql_type': 'NVARCHAR(255)'}", "{'name': 'edad', 'type': 'int64', 'sql_type': 'INT'}"], 'hoja 2': ["{'name': 'talla', 'type': 'object', 'sql_type': 'NVARCHAR(255)'}"]}
+2025-10-08 09:59:20,649 - ERROR - Traceback (most recent call last):
+  File "C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\automatizacion\models.py", line 622, in _process_excel_sheets_individually
+    df = df[selected_cols]
+         ~~^^^^^^^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\frame.py", line 4113, in __getitem__
+    indexer = self.columns._get_indexer_strict(key, "columns")[1]
+              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\indexes\base.py", line 6212, in _get_indexer_strict
+    self._raise_if_missing(keyarr, indexer, axis_name)
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\indexes\base.py", line 6261, in _raise_if_missing
+    raise KeyError(f"None of [{key}] are in the [{axis_name}]")
+KeyError: "None of [Index(['{'name': 'ID', 'type': 'int64', 'sql_type': 'INT'}',\n       '{'name': 'nombre', 'type': 'object', 'sql_type': 'NVARCHAR(255)'}',\n       '{'name': 'edad', 'type': 'int64', 'sql_type': 'INT'}'],\n      dtype='object')] are in the [columns]"
+
+2025-10-08 09:59:27,687 - WARNING - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-10-08 10:00:31,834 - WARNING - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-10-08 10:01:00,204 - INFO - ================================================================================
+2025-10-08 10:01:00,204 - INFO - INICIANDO PROCESAMIENTO EXCEL MULTIHOJA
+2025-10-08 10:01:00,205 - INFO - Proceso: motomototorewthyj
+2025-10-08 10:01:00,205 - INFO - Archivo: C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\temp_files\Hoja de cálculo sin título (1)_mOf3bG2.xlsx
+2025-10-08 10:01:00,206 - INFO - ================================================================================
+2025-10-08 10:01:00,206 - INFO - Hojas seleccionadas: ['Hoja 1']
+2025-10-08 10:01:00,206 - INFO - Columnas seleccionadas: {'Hoja 1': ["{'name': 'ID', 'type': 'int64', 'sql_type': 'INT'}", "{'name': 'nombre', 'type': 'object', 'sql_type': 'NVARCHAR(255)'}", "{'name': 'edad', 'type': 'int64', 'sql_type': 'INT'}"], 'hoja 2': ["{'name': 'talla', 'type': 'object', 'sql_type': 'NVARCHAR(255)'}"]}
+2025-10-08 10:01:00,344 - ERROR - Traceback (most recent call last):
+  File "C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\automatizacion\models.py", line 622, in _process_excel_sheets_individually
+    df = df[selected_cols]
+         ~~^^^^^^^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\frame.py", line 4113, in __getitem__
+    indexer = self.columns._get_indexer_strict(key, "columns")[1]
+              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\indexes\base.py", line 6212, in _get_indexer_strict
+    self._raise_if_missing(keyarr, indexer, axis_name)
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\indexes\base.py", line 6261, in _raise_if_missing
+    raise KeyError(f"None of [{key}] are in the [{axis_name}]")
+KeyError: "None of [Index(['{'name': 'ID', 'type': 'int64', 'sql_type': 'INT'}',\n       '{'name': 'nombre', 'type': 'object', 'sql_type': 'NVARCHAR(255)'}',\n       '{'name': 'edad', 'type': 'int64', 'sql_type': 'INT'}'],\n      dtype='object')] are in the [columns]"
+
+2025-10-08 10:01:00,571 - WARNING - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-10-08 10:05:08,775 - INFO - C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\automatizacion\utils.py changed, reloading.
+2025-10-08 10:06:02,437 - INFO - ================================================================================
+2025-10-08 10:06:02,437 - INFO - INICIANDO PROCESAMIENTO EXCEL MULTIHOJA
+2025-10-08 10:06:02,438 - INFO - Proceso: motomototorewthyj
+2025-10-08 10:06:02,438 - INFO - Archivo: C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\temp_files\Hoja de cálculo sin título (1)_mOf3bG2.xlsx
+2025-10-08 10:06:02,439 - INFO - ================================================================================
+2025-10-08 10:06:02,439 - INFO - Hojas seleccionadas: ['Hoja 1']
+2025-10-08 10:06:02,439 - INFO - Columnas seleccionadas: {'Hoja 1': ["{'name': 'ID', 'type': 'int64', 'sql_type': 'INT'}", "{'name': 'nombre', 'type': 'object', 'sql_type': 'NVARCHAR(255)'}", "{'name': 'edad', 'type': 'int64', 'sql_type': 'INT'}"], 'hoja 2': ["{'name': 'talla', 'type': 'object', 'sql_type': 'NVARCHAR(255)'}"]}
+2025-10-08 10:06:03,167 - ERROR - Traceback (most recent call last):
+  File "C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\automatizacion\models.py", line 622, in _process_excel_sheets_individually
+    df = df[selected_cols]
+         ~~^^^^^^^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\frame.py", line 4113, in __getitem__
+    indexer = self.columns._get_indexer_strict(key, "columns")[1]
+              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\indexes\base.py", line 6212, in _get_indexer_strict
+    self._raise_if_missing(keyarr, indexer, axis_name)
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\indexes\base.py", line 6261, in _raise_if_missing
+    raise KeyError(f"None of [{key}] are in the [{axis_name}]")
+KeyError: "None of [Index(['{'name': 'ID', 'type': 'int64', 'sql_type': 'INT'}',\n       '{'name': 'nombre', 'type': 'object', 'sql_type': 'NVARCHAR(255)'}',\n       '{'name': 'edad', 'type': 'int64', 'sql_type': 'INT'}'],\n      dtype='object')] are in the [columns]"
+
+2025-10-08 10:06:09,021 - INFO - ================================================================================
+2025-10-08 10:06:09,021 - INFO - INICIANDO PROCESAMIENTO EXCEL MULTIHOJA
+2025-10-08 10:06:09,021 - INFO - Proceso: motomototo
+2025-10-08 10:06:09,022 - INFO - Archivo: C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\temp_files\Hoja de cálculo sin título (1)_mOf3bG2.xlsx
+2025-10-08 10:06:09,022 - INFO - ================================================================================
+2025-10-08 10:06:09,023 - INFO - Hojas seleccionadas: ['Hoja 1']
+2025-10-08 10:06:09,023 - INFO - Columnas seleccionadas: {'hoja 2': ["{'name': 'talla', 'type': 'object', 'sql_type': 'NVARCHAR(255)'}"], 'Hoja 1': ["{'name': 'ID', 'type': 'int64', 'sql_type': 'INT'}", "{'name': 'nombre', 'type': 'object', 'sql_type': 'NVARCHAR(255)'}", "{'name': 'edad', 'type': 'int64', 'sql_type': 'INT'}"]}
+2025-10-08 10:06:09,156 - ERROR - Traceback (most recent call last):
+  File "C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\automatizacion\models.py", line 622, in _process_excel_sheets_individually
+    df = df[selected_cols]
+         ~~^^^^^^^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\frame.py", line 4113, in __getitem__
+    indexer = self.columns._get_indexer_strict(key, "columns")[1]
+              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\indexes\base.py", line 6212, in _get_indexer_strict
+    self._raise_if_missing(keyarr, indexer, axis_name)
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\indexes\base.py", line 6261, in _raise_if_missing
+    raise KeyError(f"None of [{key}] are in the [{axis_name}]")
+KeyError: "None of [Index(['{'name': 'ID', 'type': 'int64', 'sql_type': 'INT'}',\n       '{'name': 'nombre', 'type': 'object', 'sql_type': 'NVARCHAR(255)'}',\n       '{'name': 'edad', 'type': 'int64', 'sql_type': 'INT'}'],\n      dtype='object')] are in the [columns]"
+
+2025-10-08 10:06:14,746 - INFO - ================================================================================
+2025-10-08 10:06:14,746 - INFO - INICIANDO PROCESAMIENTO EXCEL MULTIHOJA
+2025-10-08 10:06:14,747 - INFO - Proceso: Test_Proceso_Multihoja_20251008_092516
+2025-10-08 10:06:14,747 - INFO - Archivo: C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\test_multihoja_completo.xlsx
+2025-10-08 10:06:14,748 - INFO - ================================================================================
+2025-10-08 10:06:14,748 - INFO - Hojas seleccionadas: ['Usuarios', 'Productos', 'Ventas']
+2025-10-08 10:06:14,748 - INFO - Columnas seleccionadas: {'Usuarios': ['ID', 'Nombre', 'Email'], 'Productos': ['ProductoID', 'Descripcion', 'Precio'], 'Ventas': ['VentaID', 'ProductoID', 'Cantidad', 'Total']}
+2025-10-08 10:06:14,936 - ERROR - Traceback (most recent call last):
+  File "C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\automatizacion\models.py", line 609, in _process_excel_sheets_individually
+    df = pd.read_excel(self.source.file_path, sheet_name=sheet_name)
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\io\excel\_base.py", line 495, in read_excel
+    io = ExcelFile(
+        io,
+    ...<2 lines>...
+        engine_kwargs=engine_kwargs,
+    )
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\io\excel\_base.py", line 1550, in __init__
+    ext = inspect_excel_format(
+        content_or_path=path_or_buffer, storage_options=storage_options
+    )
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\io\excel\_base.py", line 1402, in inspect_excel_format
+    with get_handle(
+         ~~~~~~~~~~^
+        content_or_path, "rb", storage_options=storage_options, is_text=False
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ) as handle:
+    ^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\io\common.py", line 882, in get_handle
+    handle = open(handle, ioargs.mode)
+FileNotFoundError: [Errno 2] No such file or directory: 'C:\\Users\\migue\\OneDrive\\Escritorio\\DJANGO DE NUEVO\\opav\\proyecto_automatizacion\\test_multihoja_completo.xlsx'
+
+2025-10-08 10:06:15,183 - ERROR - Traceback (most recent call last):
+  File "C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\automatizacion\models.py", line 609, in _process_excel_sheets_individually
+    df = pd.read_excel(self.source.file_path, sheet_name=sheet_name)
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\io\excel\_base.py", line 495, in read_excel
+    io = ExcelFile(
+        io,
+    ...<2 lines>...
+        engine_kwargs=engine_kwargs,
+    )
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\io\excel\_base.py", line 1550, in __init__
+    ext = inspect_excel_format(
+        content_or_path=path_or_buffer, storage_options=storage_options
+    )
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\io\excel\_base.py", line 1402, in inspect_excel_format
+    with get_handle(
+         ~~~~~~~~~~^
+        content_or_path, "rb", storage_options=storage_options, is_text=False
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ) as handle:
+    ^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\io\common.py", line 882, in get_handle
+    handle = open(handle, ioargs.mode)
+FileNotFoundError: [Errno 2] No such file or directory: 'C:\\Users\\migue\\OneDrive\\Escritorio\\DJANGO DE NUEVO\\opav\\proyecto_automatizacion\\test_multihoja_completo.xlsx'
+
+2025-10-08 10:06:15,328 - ERROR - Traceback (most recent call last):
+  File "C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\automatizacion\models.py", line 609, in _process_excel_sheets_individually
+    df = pd.read_excel(self.source.file_path, sheet_name=sheet_name)
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\io\excel\_base.py", line 495, in read_excel
+    io = ExcelFile(
+        io,
+    ...<2 lines>...
+        engine_kwargs=engine_kwargs,
+    )
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\io\excel\_base.py", line 1550, in __init__
+    ext = inspect_excel_format(
+        content_or_path=path_or_buffer, storage_options=storage_options
+    )
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\io\excel\_base.py", line 1402, in inspect_excel_format
+    with get_handle(
+         ~~~~~~~~~~^
+        content_or_path, "rb", storage_options=storage_options, is_text=False
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ) as handle:
+    ^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\io\common.py", line 882, in get_handle
+    handle = open(handle, ioargs.mode)
+FileNotFoundError: [Errno 2] No such file or directory: 'C:\\Users\\migue\\OneDrive\\Escritorio\\DJANGO DE NUEVO\\opav\\proyecto_automatizacion\\test_multihoja_completo.xlsx'
+
+2025-10-08 10:07:14,548 - INFO - ================================================================================
+2025-10-08 10:07:14,548 - INFO - INICIANDO PROCESAMIENTO EXCEL MULTIHOJA
+2025-10-08 10:07:14,549 - INFO - Proceso: motomototo
+2025-10-08 10:07:14,549 - INFO - Archivo: C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\temp_files\Hoja de cálculo sin título (1)_mOf3bG2.xlsx
+2025-10-08 10:07:14,549 - INFO - ================================================================================
+2025-10-08 10:07:14,550 - INFO - Hojas seleccionadas: ['Hoja 1']
+2025-10-08 10:07:14,550 - INFO - Columnas seleccionadas: {'hoja 2': ["{'name': 'talla', 'type': 'object', 'sql_type': 'NVARCHAR(255)'}"], 'Hoja 1': ["{'name': 'ID', 'type': 'int64', 'sql_type': 'INT'}", "{'name': 'nombre', 'type': 'object', 'sql_type': 'NVARCHAR(255)'}", "{'name': 'edad', 'type': 'int64', 'sql_type': 'INT'}"]}
+2025-10-08 10:07:14,687 - ERROR - Traceback (most recent call last):
+  File "C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\automatizacion\models.py", line 622, in _process_excel_sheets_individually
+    df = df[selected_cols]
+         ~~^^^^^^^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\frame.py", line 4113, in __getitem__
+    indexer = self.columns._get_indexer_strict(key, "columns")[1]
+              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\indexes\base.py", line 6212, in _get_indexer_strict
+    self._raise_if_missing(keyarr, indexer, axis_name)
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\indexes\base.py", line 6261, in _raise_if_missing
+    raise KeyError(f"None of [{key}] are in the [{axis_name}]")
+KeyError: "None of [Index(['{'name': 'ID', 'type': 'int64', 'sql_type': 'INT'}',\n       '{'name': 'nombre', 'type': 'object', 'sql_type': 'NVARCHAR(255)'}',\n       '{'name': 'edad', 'type': 'int64', 'sql_type': 'INT'}'],\n      dtype='object')] are in the [columns]"
+
+2025-10-08 10:07:20,026 - WARNING - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-10-08 10:09:47,313 - INFO - C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\automatizacion\views.py changed, reloading.
+2025-10-08 10:10:54,950 - INFO - ================================================================================
+2025-10-08 10:10:54,950 - INFO - INICIANDO PROCESAMIENTO EXCEL MULTIHOJA
+2025-10-08 10:10:54,951 - INFO - Proceso: motomototo
+2025-10-08 10:10:54,951 - INFO - Archivo: C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\temp_files\Hoja de cálculo sin título (1)_mOf3bG2.xlsx
+2025-10-08 10:10:54,952 - INFO - ================================================================================
+2025-10-08 10:10:54,952 - INFO - Hojas seleccionadas: ['Hoja 1']
+2025-10-08 10:10:54,953 - INFO - Columnas seleccionadas: {'hoja 2': ["{'name': 'talla', 'type': 'object', 'sql_type': 'NVARCHAR(255)'}"], 'Hoja 1': ["{'name': 'ID', 'type': 'int64', 'sql_type': 'INT'}", "{'name': 'nombre', 'type': 'object', 'sql_type': 'NVARCHAR(255)'}", "{'name': 'edad', 'type': 'int64', 'sql_type': 'INT'}"]}
+2025-10-08 10:10:55,752 - ERROR - Traceback (most recent call last):
+  File "C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\automatizacion\models.py", line 622, in _process_excel_sheets_individually
+    df = df[selected_cols]
+         ~~^^^^^^^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\frame.py", line 4113, in __getitem__
+    indexer = self.columns._get_indexer_strict(key, "columns")[1]
+              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\indexes\base.py", line 6212, in _get_indexer_strict
+    self._raise_if_missing(keyarr, indexer, axis_name)
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\indexes\base.py", line 6261, in _raise_if_missing
+    raise KeyError(f"None of [{key}] are in the [{axis_name}]")
+KeyError: "None of [Index(['{'name': 'ID', 'type': 'int64', 'sql_type': 'INT'}',\n       '{'name': 'nombre', 'type': 'object', 'sql_type': 'NVARCHAR(255)'}',\n       '{'name': 'edad', 'type': 'int64', 'sql_type': 'INT'}'],\n      dtype='object')] are in the [columns]"
+
+2025-10-08 10:10:56,080 - WARNING - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-10-08 10:11:32,192 - INFO - ================================================================================
+2025-10-08 10:11:32,193 - INFO - INICIANDO PROCESAMIENTO EXCEL MULTIHOJA
+2025-10-08 10:11:32,193 - INFO - Proceso: motomototo
+2025-10-08 10:11:32,194 - INFO - Archivo: C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\temp_files\Hoja de cálculo sin título (1)_mOf3bG2.xlsx
+2025-10-08 10:11:32,194 - INFO - ================================================================================
+2025-10-08 10:11:32,195 - INFO - Hojas seleccionadas: ['Hoja 1']
+2025-10-08 10:11:32,195 - INFO - Columnas seleccionadas: {'hoja 2': ["{'name': 'talla', 'type': 'object', 'sql_type': 'NVARCHAR(255)'}"], 'Hoja 1': ["{'name': 'ID', 'type': 'int64', 'sql_type': 'INT'}", "{'name': 'nombre', 'type': 'object', 'sql_type': 'NVARCHAR(255)'}", "{'name': 'edad', 'type': 'int64', 'sql_type': 'INT'}"]}
+2025-10-08 10:11:32,319 - ERROR - Traceback (most recent call last):
+  File "C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\automatizacion\models.py", line 622, in _process_excel_sheets_individually
+    df = df[selected_cols]
+         ~~^^^^^^^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\frame.py", line 4113, in __getitem__
+    indexer = self.columns._get_indexer_strict(key, "columns")[1]
+              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\indexes\base.py", line 6212, in _get_indexer_strict
+    self._raise_if_missing(keyarr, indexer, axis_name)
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\indexes\base.py", line 6261, in _raise_if_missing
+    raise KeyError(f"None of [{key}] are in the [{axis_name}]")
+KeyError: "None of [Index(['{'name': 'ID', 'type': 'int64', 'sql_type': 'INT'}',\n       '{'name': 'nombre', 'type': 'object', 'sql_type': 'NVARCHAR(255)'}',\n       '{'name': 'edad', 'type': 'int64', 'sql_type': 'INT'}'],\n      dtype='object')] are in the [columns]"
+
+2025-10-08 10:11:32,518 - WARNING - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-10-08 10:12:59,494 - WARNING - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-10-08 10:13:00,379 - WARNING - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-10-08 10:13:01,731 - INFO - ================================================================================
+2025-10-08 10:13:01,731 - INFO - INICIANDO PROCESAMIENTO EXCEL MULTIHOJA
+2025-10-08 10:13:01,732 - INFO - Proceso: motomototo
+2025-10-08 10:13:01,732 - INFO - Archivo: C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\temp_files\Hoja de cálculo sin título (1)_mOf3bG2.xlsx
+2025-10-08 10:13:01,733 - INFO - ================================================================================
+2025-10-08 10:13:01,733 - INFO - Hojas seleccionadas: ['Hoja 1']
+2025-10-08 10:13:01,733 - INFO - Columnas seleccionadas: {'hoja 2': ['talla'], 'Hoja 1': ['ID', 'nombre', 'edad']}
+2025-10-08 10:13:01,992 - WARNING - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-10-08 10:13:35,902 - ERROR - Internal Server Error: /automatizacion/excel/99/multi-config/
+Traceback (most recent call last):
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\automatizacion\views.py", line 244, in list_excel_multi_sheet_columns
+    return render(request, 'automatizacion/excel_multi_sheet_selector.html', context)
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\shortcuts.py", line 24, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\loader.py", line 62, in render_to_string
+    return template.render(context, request)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\backends\django.py", line 61, in render
+    return self.template.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 175, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 167, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 1005, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 966, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\loader_tags.py", line 157, in render
+    return compiled_parent._render(context)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 167, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 1005, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 966, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\loader_tags.py", line 63, in render
+    result = block.nodelist.render(context)
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 1005, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 966, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\defaulttags.py", line 238, in render
+    nodelist.append(node.render_annotated(context))
+                    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 966, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\defaulttags.py", line 541, in render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 1005, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 966, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\defaulttags.py", line 321, in render
+    return nodelist.render(context)
+           ~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 1005, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 966, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\defaulttags.py", line 238, in render
+    nodelist.append(node.render_annotated(context))
+                    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 966, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\defaulttags.py", line 238, in render
+    nodelist.append(node.render_annotated(context))
+                    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 966, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 1064, in render
+    output = self.filter_expression.resolve(context)
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 742, in resolve
+    new_obj = func(obj, *arg_vals)
+  File "C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\automatizacion\templatetags\custom_filters.py", line 10, in get_item
+    return dictionary.get(key, None)
+           ^^^^^^^^^^^^^^
+AttributeError: 'list' object has no attribute 'get'
+2025-10-08 10:13:44,867 - ERROR - Internal Server Error: /automatizacion/excel/99/multi-config/
+Traceback (most recent call last):
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\automatizacion\views.py", line 244, in list_excel_multi_sheet_columns
+    return render(request, 'automatizacion/excel_multi_sheet_selector.html', context)
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\shortcuts.py", line 24, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\loader.py", line 62, in render_to_string
+    return template.render(context, request)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\backends\django.py", line 61, in render
+    return self.template.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 175, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 167, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 1005, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 966, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\loader_tags.py", line 157, in render
+    return compiled_parent._render(context)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 167, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 1005, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 966, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\loader_tags.py", line 63, in render
+    result = block.nodelist.render(context)
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 1005, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 966, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\defaulttags.py", line 238, in render
+    nodelist.append(node.render_annotated(context))
+                    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 966, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\defaulttags.py", line 541, in render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 1005, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 966, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\defaulttags.py", line 321, in render
+    return nodelist.render(context)
+           ~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 1005, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 966, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\defaulttags.py", line 238, in render
+    nodelist.append(node.render_annotated(context))
+                    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 966, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\defaulttags.py", line 238, in render
+    nodelist.append(node.render_annotated(context))
+                    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 966, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 1064, in render
+    output = self.filter_expression.resolve(context)
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 742, in resolve
+    new_obj = func(obj, *arg_vals)
+  File "C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\automatizacion\templatetags\custom_filters.py", line 10, in get_item
+    return dictionary.get(key, None)
+           ^^^^^^^^^^^^^^
+AttributeError: 'list' object has no attribute 'get'
+2025-10-08 10:13:53,282 - ERROR - Internal Server Error: /automatizacion/excel/99/multi-config/
+Traceback (most recent call last):
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\automatizacion\views.py", line 244, in list_excel_multi_sheet_columns
+    return render(request, 'automatizacion/excel_multi_sheet_selector.html', context)
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\shortcuts.py", line 24, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\loader.py", line 62, in render_to_string
+    return template.render(context, request)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\backends\django.py", line 61, in render
+    return self.template.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 175, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 167, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 1005, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 966, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\loader_tags.py", line 157, in render
+    return compiled_parent._render(context)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 167, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 1005, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 966, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\loader_tags.py", line 63, in render
+    result = block.nodelist.render(context)
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 1005, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 966, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\defaulttags.py", line 238, in render
+    nodelist.append(node.render_annotated(context))
+                    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 966, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\defaulttags.py", line 541, in render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 1005, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 966, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\defaulttags.py", line 321, in render
+    return nodelist.render(context)
+           ~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 1005, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 966, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\defaulttags.py", line 238, in render
+    nodelist.append(node.render_annotated(context))
+                    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 966, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\defaulttags.py", line 238, in render
+    nodelist.append(node.render_annotated(context))
+                    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 966, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 1064, in render
+    output = self.filter_expression.resolve(context)
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 742, in resolve
+    new_obj = func(obj, *arg_vals)
+  File "C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\automatizacion\templatetags\custom_filters.py", line 10, in get_item
+    return dictionary.get(key, None)
+           ^^^^^^^^^^^^^^
+AttributeError: 'list' object has no attribute 'get'
+2025-10-08 10:14:35,245 - INFO - C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\automatizacion\templatetags\custom_filters.py changed, reloading.
