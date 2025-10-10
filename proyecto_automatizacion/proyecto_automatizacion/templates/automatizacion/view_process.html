@@ -179,6 +179,7 @@
                     <!-- Detalle de columnas -->
                     <div class="accordion" id="columnsAccordion">
                         {% for item_name, columns in process.selected_columns.items %}
+                            {% get_mapped_columns columns item_name process.column_mappings as mapped_columns %}
                             <div class="accordion-item">
                                 <h2 class="accordion-header" id="heading{{ forloop.counter }}">
                                     <button class="accordion-button {% if forloop.first %}{% else %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" 
@@ -186,12 +187,22 @@
                                             aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}" 
                                             aria-controls="collapse{{ forloop.counter }}">
                                         <div class="d-flex justify-content-between align-items-center w-100 me-3">
-                                            <span>
-                                                <i class="fas fa-{% if process.source.source_type == 'excel' %}file-excel{% else %}database{% endif %} me-2"></i>
-                                                {{ item_name }}
-                                            </span>
-                                            <div>
-                                                <span class="badge bg-primary me-2">{{ columns|length }} columnas</span>
+                                            <div class="flex-grow-1">
+                                                <div class="mb-1">
+                                                    <i class="fas fa-{% if process.source.source_type == 'excel' %}file-excel{% else %}database{% endif %} me-2"></i>
+                                                    <strong>{{ item_name }}</strong>
+                                                </div>
+                                                <div class="small text-muted">
+                                                    <i class="fas fa-columns me-1"></i>
+                                                    {% if mapped_columns|length <= 3 %}
+                                                        {{ mapped_columns|join:", " }}
+                                                    {% else %}
+                                                        {{ mapped_columns.0 }}, {{ mapped_columns.1 }}, {{ mapped_columns.2 }}{% if mapped_columns|length > 3 %} +{{ mapped_columns|length|add:"-3" }} más{% endif %}
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            <div class="text-end">
+                                                <span class="badge bg-primary me-2">{{ mapped_columns|length }} columnas</span>
                                                 <span class="badge bg-secondary">
                                                     Tabla: {{ process.name|slugify }}_{{ item_name|slugify }}
                                                 </span>
@@ -202,14 +213,56 @@
                                 <div id="collapse{{ forloop.counter }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" 
                                      aria-labelledby="heading{{ forloop.counter }}" data-bs-parent="#columnsAccordion">
                                     <div class="accordion-body">
+                                        {# Preview de datos si están disponibles #}
+                                        {% if sample_data and item_name in sample_data %}
+                                            <div class="mb-4">
+                                                <h6 class="mb-3">
+                                                    <i class="fas fa-table me-1 text-primary"></i>
+                                                    Vista previa de datos (primeras 5 filas)
+                                                </h6>
+                                                {% if sample_data|get_item:item_name|get_item:'error' %}
+                                                    <div class="alert alert-warning small mb-0">
+                                                        <i class="fas fa-exclamation-triangle me-1"></i>
+                                                        No se pudieron cargar los datos: {{ sample_data|get_item:item_name|get_item:'error' }}
+                                                    </div>
+                                                {% elif sample_data|get_item:item_name|get_item:'rows' %}
+                                                    <div class="table-responsive">
+                                                        <table class="table table-sm table-bordered table-hover mb-0">
+                                                            <thead class="table-light">
+                                                                <tr>
+                                                                    {% for col in sample_data|get_item:item_name|get_item:'columns' %}
+                                                                        <th class="small">{{ col }}</th>
+                                                                    {% endfor %}
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {% for row in sample_data|get_item:item_name|get_item:'rows' %}
+                                                                    <tr>
+                                                                        {% for value in row %}
+                                                                            <td class="small">{{ value|truncatechars:50 }}</td>
+                                                                        {% endfor %}
+                                                                    </tr>
+                                                                {% endfor %}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                {% else %}
+                                                    <div class="alert alert-info small mb-0">
+                                                        <i class="fas fa-info-circle me-1"></i>
+                                                        No hay datos disponibles para mostrar.
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        {% endif %}
+                                        
                                         <div class="row">
                                             <div class="col-md-8">
                                                 <h6 class="mb-3">
                                                     <i class="fas fa-columns me-1"></i>
-                                                    Columnas seleccionadas ({{ columns|length }})
+                                                    Columnas seleccionadas ({{ mapped_columns|length }})
                                                 </h6>
                                                 <div class="row">
-                                                    {% for column in columns %}
+                                                    {% for column in mapped_columns %}
                                                         <div class="col-md-6 col-lg-4 mb-2">
                                                             <span class="badge bg-light text-dark border w-100 text-start">
                                                                 <i class="fas fa-tag me-1"></i>{{ column }}

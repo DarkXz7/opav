@@ -71,7 +71,8 @@
                                             <input class="form-check-input" type="checkbox" id="selectAllColumns">
                                         </div>
                                     </th>
-                                    <th>Nombre</th>
+                                    <th>Nombre Original</th>
+                                    <th>Nombre Personalizado</th>
                                     <th>Tipo</th>
                                     <th>Nulo</th>
                                 </tr>
@@ -82,17 +83,27 @@
                                     <tr>
                                         <td>
                                             <div class="form-check">
-                                                <input class="form-check-input column-checkbox" type="checkbox" id="column-{{ forloop.counter }}" value="{{ column.name }}">
+                                                <input class="form-check-input column-checkbox" type="checkbox" id="column-{{ forloop.counter }}" value="{{ column.name }}" data-column-name="{{ column.name }}">
                                             </div>
                                         </td>
-                                        <td>{{ column.name }}</td>
+                                        <td>
+                                            <span class="text-muted">{{ column.name }}</span>
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control form-control-sm column-rename-input" 
+                                                   id="rename-{{ forloop.counter }}" 
+                                                   data-original-name="{{ column.name }}"
+                                                   value="{{ column.name }}" 
+                                                   placeholder="Nombre en destino"
+                                                   disabled>
+                                        </td>
                                         <td>{{ column.type }}</td>
                                         <td>{{ column.nullable|yesno:"Sí,No" }}</td>
                                     </tr>
                                     {% endfor %}
                                 {% else %}
                                     <tr>
-                                        <td colspan="4" class="text-center">No se encontraron columnas en la tabla</td>
+                                        <td colspan="5" class="text-center">No se encontraron columnas en la tabla</td>
                                     </tr>
                                 {% endif %}
                             </tbody>
@@ -275,11 +286,23 @@ $(document).ready(function() {
     
     // Selección de todas las columnas
     $('#selectAllColumns').change(function() {
-        $('.column-checkbox').prop('checked', $(this).is(':checked'));
+        var isChecked = $(this).is(':checked');
+        $('.column-checkbox').prop('checked', isChecked);
+        
+        // Habilitar/deshabilitar los inputs de renombre
+        $('.column-rename-input').prop('disabled', !isChecked);
     });
     
     // Actualizar "seleccionar todo" cuando se cambian las selecciones individuales
+    // Y habilitar/deshabilitar el input de renombre correspondiente
     $('.column-checkbox').change(function() {
+        var isChecked = $(this).is(':checked');
+        var columnName = $(this).data('column-name');
+        
+        // Habilitar/deshabilitar el input de renombre correspondiente
+        $('input.column-rename-input[data-original-name="' + columnName + '"]').prop('disabled', !isChecked);
+        
+        // Actualizar el checkbox "seleccionar todo"
         if ($('.column-checkbox:checked').length === $('.column-checkbox').length) {
             $('#selectAllColumns').prop('checked', true);
         } else {
@@ -311,8 +334,21 @@ $(document).ready(function() {
         }
         
         var selectedColumns = [];
+        var columnMappings = {};
+        
         $('.column-checkbox:checked').each(function() {
-            selectedColumns.push($(this).val());
+            var originalName = $(this).val();
+            var customName = $('input.column-rename-input[data-original-name="' + originalName + '"]').val().trim();
+            
+            selectedColumns.push(originalName);
+            
+            // Solo agregar al mapeo si el nombre personalizado es diferente al original
+            if (customName && customName !== originalName) {
+                if (!columnMappings['{{ full_table_name }}']) {
+                    columnMappings['{{ full_table_name }}'] = {};
+                }
+                columnMappings['{{ full_table_name }}'][originalName] = customName;
+            }
         });
         
         var processName = $('#processName').val();
@@ -331,6 +367,7 @@ $(document).ready(function() {
             selected_columns: {
                 '{{ full_table_name }}': selectedColumns
             },
+            column_mappings: Object.keys(columnMappings).length > 0 ? columnMappings : null,
             target_db: $('#targetDB').val()
         };
         

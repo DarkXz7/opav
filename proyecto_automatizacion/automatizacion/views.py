@@ -97,25 +97,136 @@ def view_process(request, process_id):
     if process.source.source_type == 'sql':
         from automatizacion.logs.models_logs import ProcesoLog
         from django.db.models import Q
+        import pyodbc
         
         # Filtrar por MigrationProcessID (si existe) o por nombre del proceso
         logs = ProcesoLog.objects.filter(
             Q(MigrationProcessID=process.id) | Q(NombreProceso=process.name)
         ).order_by('-FechaEjecucion')[:10]
         
+        # Obtener datos de muestra de las tablas SQL seleccionadas
+        sample_data = {}
+        if process.selected_columns and process.source.connection:
+            try:
+                conn_str = (
+                    f'DRIVER={{ODBC Driver 17 for SQL Server}};'
+                    f'SERVER={process.source.connection.server};'
+                    f'DATABASE={process.source.connection.selected_database};'
+                    f'UID={process.source.connection.username};'
+                    f'PWD={process.source.connection.password}'
+                )
+                conn = pyodbc.connect(conn_str, timeout=5)
+                cursor = conn.cursor()
+                
+                for table_name, columns in process.selected_columns.items():
+                    try:
+                        # Consultar las primeras 5 filas de las columnas seleccionadas
+                        columns_str = ', '.join([f'[{col}]' for col in columns])
+                        query = f"SELECT TOP 5 {columns_str} FROM {table_name}"
+                        cursor.execute(query)
+                        rows = cursor.fetchall()
+                        
+                        # Aplicar mapeos de nombres si existen
+                        displayed_columns = columns
+                        if process.column_mappings and table_name in process.column_mappings:
+                            displayed_columns = [
+                                process.column_mappings[table_name].get(col, col) 
+                                for col in columns
+                            ]
+                        
+                        sample_data[table_name] = {
+                            'columns': displayed_columns,
+                            'rows': [list(row) for row in rows]
+                        }
+                    except Exception as e:
+                        sample_data[table_name] = {
+                            'columns': columns,
+                            'rows': [],
+                            'error': str(e)
+                        }
+                
+                conn.close()
+            except Exception as e:
+                print(f"Error obteniendo datos de muestra SQL: {e}")
+        
         context = {
             'process': process,
             'logs': logs,
             'connection': process.source.connection,
-            'is_sql_process': True  # Flag para el template
+            'is_sql_process': True,
+            'sample_data': sample_data
         }
     else:
         # Para Excel/CSV usar MigrationLog (relacionado con el proceso)
         logs = process.logs.all().order_by('-timestamp')[:10]
+        
+        # Obtener datos de muestra de archivos Excel/CSV
+        sample_data = {}
+        if process.selected_columns and process.source.file_path:
+            import pandas as pd
+            try:
+                if process.source.source_type == 'excel':
+                    for sheet_name, columns in process.selected_columns.items():
+                        try:
+                            df = pd.read_excel(process.source.file_path, sheet_name=sheet_name, nrows=5)
+                            # Filtrar solo las columnas seleccionadas
+                            available_columns = [col for col in columns if col in df.columns]
+                            if available_columns:
+                                df_filtered = df[available_columns]
+                                
+                                # Aplicar mapeos de nombres si existen
+                                displayed_columns = available_columns
+                                if process.column_mappings and sheet_name in process.column_mappings:
+                                    displayed_columns = [
+                                        process.column_mappings[sheet_name].get(col, col) 
+                                        for col in available_columns
+                                    ]
+                                
+                                sample_data[sheet_name] = {
+                                    'columns': displayed_columns,
+                                    'rows': df_filtered.values.tolist()
+                                }
+                        except Exception as e:
+                            sample_data[sheet_name] = {
+                                'columns': columns,
+                                'rows': [],
+                                'error': str(e)
+                            }
+                elif process.source.source_type == 'csv':
+                    try:
+                        df = pd.read_csv(process.source.file_path, nrows=5)
+                        columns = list(process.selected_columns.values())[0] if process.selected_columns else df.columns.tolist()
+                        available_columns = [col for col in columns if col in df.columns]
+                        if available_columns:
+                            df_filtered = df[available_columns]
+                            
+                            # Aplicar mapeos de nombres si existen
+                            displayed_columns = available_columns
+                            csv_key = list(process.selected_columns.keys())[0] if process.selected_columns else 'CSV'
+                            if process.column_mappings and csv_key in process.column_mappings:
+                                displayed_columns = [
+                                    process.column_mappings[csv_key].get(col, col) 
+                                    for col in available_columns
+                                ]
+                            
+                            sample_data['CSV'] = {
+                                'columns': displayed_columns,
+                                'rows': df_filtered.values.tolist()
+                            }
+                    except Exception as e:
+                        sample_data['CSV'] = {
+                            'columns': columns,
+                            'rows': [],
+                            'error': str(e)
+                        }
+            except Exception as e:
+                print(f"Error obteniendo datos de muestra Excel/CSV: {e}")
+        
         context = {
             'process': process,
             'logs': logs,
-            'file_path': process.source.file_path if hasattr(process.source, 'file_path') else None
+            'file_path': process.source.file_path if hasattr(process.source, 'file_path') else None,
+            'sample_data': sample_data
         }
         
     return render(request, 'automatizacion/view_process.html', context)
@@ -717,6 +828,7 @@ def save_process(request):
             process.selected_tables = data.get('selected_tables')
         
         process.selected_columns = data.get('selected_columns')
+        process.column_mappings = data.get('column_mappings')  # Guardar mapeos de columnas personalizadas
         process.target_db_name = data.get('target_db', 'DestinoAutomatizacion')
         
         process.save()
@@ -834,6 +946,7 @@ def save_excel_multi_process(request):
             source=source,
             selected_sheets=selected_sheets,
             selected_columns=selected_columns,
+            column_mappings=data.get('column_mappings'),  # Guardar mapeos de columnas personalizadas
             target_db_name=data.get('target_db', 'DestinoAutomatizacion'),
             status='configured'
         )

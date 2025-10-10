@@ -94,6 +94,7 @@ class MigrationProcess(models.Model):
     
     # Campos compartidos
     selected_columns = models.JSONField(null=True, blank=True)  # Dict de columnas seleccionadas por tabla/hoja
+    column_mappings = models.JSONField(null=True, blank=True)  # Dict de mapeos: {'tabla': {'nombre_original': 'nombre_personalizado'}}
     
     # Destino de datos
     target_db_name = models.CharField(max_length=100, default='DestinoAutomatizacion')
@@ -649,7 +650,8 @@ class MigrationProcess(models.Model):
                         df_datos=df,  # DataFrame con los datos reales
                         nombre_tabla_destino=nombre_tabla_destino,  # Nombre dinámico de la tabla
                         proceso_id=proceso_id_hoja,
-                        usuario_responsable='sistema_automatizado'
+                        usuario_responsable='sistema_automatizado',
+                        source_table_name=sheet_name  # Pasar nombre de hoja para aplicar mapeos
                     )
                     
                     # DEBUG: Logging adicional para detectar el problema
@@ -1238,7 +1240,8 @@ class MigrationProcess(models.Model):
                     df_datos=df_datos,
                     nombre_tabla_destino=nombre_tabla_destino,
                     proceso_id=proceso_id,
-                    usuario_responsable='sistema_automatizado'
+                    usuario_responsable='sistema_automatizado',
+                    source_table_name=nombre_tabla  # Pasar nombre de tabla origen para aplicar mapeos
                 )
                 
                 if exito_guardado:
@@ -1409,7 +1412,7 @@ class MigrationProcess(models.Model):
         
         return df
 
-    def _save_dataframe_to_destination(self, df_datos, nombre_tabla_destino, proceso_id, usuario_responsable):
+    def _save_dataframe_to_destination(self, df_datos, nombre_tabla_destino, proceso_id, usuario_responsable, source_table_name=None):
         """
         Guarda un DataFrame directamente a la base de datos destino como una tabla
         con la estructura exacta del DataFrame (NO metadatos del proceso)
@@ -1419,6 +1422,7 @@ class MigrationProcess(models.Model):
             nombre_tabla_destino: Nombre que tendrá la tabla en la BD destino
             proceso_id: UUID del proceso para logging
             usuario_responsable: Usuario responsable del proceso
+            source_table_name: Nombre de la tabla/hoja origen (para aplicar column_mappings)
             
         Returns:
             Tuple[bool, Dict]: (éxito, información_resultado)
@@ -1468,7 +1472,7 @@ class MigrationProcess(models.Model):
             print(f"📋 Creando tabla '{nombre_tabla_destino}' con estructura del DataFrame...")
             
             # Generar SQL CREATE TABLE basado en las columnas del DataFrame
-            create_table_sql = self._generate_create_table_sql(df_datos, nombre_tabla_destino)
+            create_table_sql = self._generate_create_table_sql(df_datos, nombre_tabla_destino, source_table_name)
             
             # Eliminar tabla si existe y crearla nueva
             cursor.execute(f"IF OBJECT_ID('{nombre_tabla_destino}', 'U') IS NOT NULL DROP TABLE [{nombre_tabla_destino}]")
@@ -1481,9 +1485,19 @@ class MigrationProcess(models.Model):
             # 2. Insertar datos del DataFrame
             registros_insertados = 0
             if not df_datos.empty:
-                # Preparar SQL INSERT con columnas limpias
-                clean_columns_list = [col.replace(' ', '_').replace('-', '_') for col in df_datos.columns]
-                clean_columns_list = [''.join(c for c in col if c.isalnum() or c == '_') for col in clean_columns_list]
+                # Obtener mapeos de columnas si existen
+                column_mappings = {}
+                if self.column_mappings and source_table_name and source_table_name in self.column_mappings:
+                    column_mappings = self.column_mappings[source_table_name]
+                
+                # Preparar SQL INSERT con columnas limpias (usando nombres mapeados)
+                clean_columns_list = []
+                for col in df_datos.columns:
+                    # Usar nombre personalizado si existe en el mapeo
+                    custom_name = column_mappings.get(col, col)
+                    clean_col = custom_name.replace(' ', '_').replace('-', '_')
+                    clean_col = ''.join(c for c in clean_col if c.isalnum() or c == '_')
+                    clean_columns_list.append(clean_col)
                 
                 columns_sql = ', '.join([f'[{col}]' for col in clean_columns_list])
                 placeholders = ', '.join(['?' for _ in clean_columns_list])
@@ -1571,13 +1585,14 @@ class MigrationProcess(models.Model):
                 'proceso_id': proceso_id
             }
 
-    def _generate_create_table_sql(self, df, table_name):
+    def _generate_create_table_sql(self, df, table_name, source_table_name=None):
         """
         Genera SQL CREATE TABLE basado en las columnas y tipos del DataFrame
         
         Args:
             df: DataFrame de Pandas
-            table_name: Nombre de la tabla a crear
+            table_name: Nombre de la tabla destino a crear
+            source_table_name: Nombre de la tabla/hoja origen (para aplicar column_mappings)
             
         Returns:
             str: SQL CREATE TABLE statement
@@ -1586,9 +1601,18 @@ class MigrationProcess(models.Model):
         
         columns_definitions = []
         
+        # Obtener mapeos de columnas si existen
+        column_mappings = {}
+        if self.column_mappings and source_table_name and source_table_name in self.column_mappings:
+            column_mappings = self.column_mappings[source_table_name]
+            print(f"🔍 DEBUG: Aplicando mapeos de columnas para '{source_table_name}': {column_mappings}")
+        
         for column in df.columns:
+            # Usar nombre personalizado si existe en el mapeo, de lo contrario usar el original
+            custom_column_name = column_mappings.get(column, column)
+            
             # Limpiar nombre de columna para SQL
-            clean_column = str(column).replace(' ', '_').replace('-', '_')
+            clean_column = str(custom_column_name).replace(' ', '_').replace('-', '_')
             clean_column = ''.join(c for c in clean_column if c.isalnum() or c == '_')
             
             # Determinar tipo SQL basado en el tipo del DataFrame

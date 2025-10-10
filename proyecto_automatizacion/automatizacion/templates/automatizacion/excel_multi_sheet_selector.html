@@ -187,24 +187,14 @@
                             <div class="col-md-3">
                                 <strong>Columnas:</strong> {{ sheets_data|get_item:sheet|get_item:'column_count' }}
                             </div>
-                            <div class="col-md-3">
-                                <div class="form-check">
-                                    <input class="form-check-input sheet-selector" type="checkbox" 
-                                           id="enableSheet-{{ sheet|slugify }}" 
-                                           onchange="toggleSheet('{{ sheet }}')">
-                                    <label class="form-check-label" for="enableSheet-{{ sheet|slugify }}">
-                                        <strong>Incluir en proceso</strong>
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
+                            <div class="col-md-6 text-end">
                                 <button type="button" class="btn btn-sm btn-outline-primary" 
                                         onclick="selectAllColumns('{{ sheet }}')">
-                                    Seleccionar todo
+                                    <i class="fas fa-check-square me-1"></i>Seleccionar todo
                                 </button>
                                 <button type="button" class="btn btn-sm btn-outline-secondary" 
                                         onclick="clearAllColumns('{{ sheet }}')">
-                                    Limpiar
+                                    <i class="fas fa-times-circle me-1"></i>Limpiar
                                 </button>
                             </div>
                         </div>
@@ -217,15 +207,32 @@
                             <div class="column-selector">
                                 {% for column in sheets_data|get_item:sheet|get_item:'columns' %}
                                 <div class="form-check mb-2">
-                                    <input class="form-check-input column-selector" 
-                                           type="checkbox" 
-                                           id="col-{{ sheet|slugify }}-{{ forloop.counter }}" 
-                                           data-sheet="{{ sheet }}" 
-                                           data-column="{{ column.name }}"
-                                           onchange="updateColumnSelection('{{ sheet }}')">
-                                    <label class="form-check-label" for="col-{{ sheet|slugify }}-{{ forloop.counter }}">
-                                        <code>{{ column.name }}</code> <small class="text-muted">({{ column.sql_type }})</small>
-                                    </label>
+                                    <div class="row g-2 align-items-center">
+                                        <div class="col-auto">
+                                            <input class="form-check-input column-selector" 
+                                                   type="checkbox" 
+                                                   id="col-{{ sheet|slugify }}-{{ forloop.counter }}" 
+                                                   data-sheet="{{ sheet }}" 
+                                                   data-column="{{ column.name }}"
+                                                   onchange="updateColumnSelection('{{ sheet }}')">
+                                        </div>
+                                        <div class="col-4">
+                                            <label class="form-check-label" for="col-{{ sheet|slugify }}-{{ forloop.counter }}">
+                                                <code>{{ column.name }}</code>
+                                            </label>
+                                            <small class="text-muted d-block">({{ column.sql_type }})</small>
+                                        </div>
+                                        <div class="col">
+                                            <input type="text" 
+                                                   class="form-control form-control-sm column-rename-input" 
+                                                   id="rename-{{ sheet|slugify }}-{{ forloop.counter }}"
+                                                   data-sheet="{{ sheet }}"
+                                                   data-original-name="{{ column.name }}"
+                                                   value="{{ column.name }}"
+                                                   placeholder="Nombre en destino"
+                                                   disabled>
+                                        </div>
+                                    </div>
                                 </div>
                                 {% endfor %}
                             </div>
@@ -431,27 +438,6 @@ function switchSheet(sheetName) {
     updatePreviewHighlighting(sheetName);
 }
 
-function toggleSheet(sheetName) {
-    const checkbox = document.getElementById(`enableSheet-${sheetName.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}`);
-    const tab = document.querySelector(`[data-sheet="${sheetName}"]`);
-    
-    if (checkbox.checked) {
-        selectedSheets.add(sheetName);
-        tab.classList.add('selected');
-        if (!selectedColumns[sheetName]) {
-            selectedColumns[sheetName] = [];
-        }
-    } else {
-        selectedSheets.delete(sheetName);
-        tab.classList.remove('selected');
-        selectedColumns[sheetName] = [];
-        // Desmarcar todas las columnas
-        clearAllColumns(sheetName);
-    }
-    
-    updateUI();
-}
-
 function selectAllColumns(sheetName) {
     const checkboxes = document.querySelectorAll(`input[data-sheet="${sheetName}"][data-column]`);
     checkboxes.forEach(checkbox => {
@@ -473,12 +459,38 @@ function updateColumnSelection(sheetName) {
     const selected = [];
     
     checkboxes.forEach(checkbox => {
-        if (checkbox.checked) {
-            selected.push(checkbox.dataset.column);
+        const isChecked = checkbox.checked;
+        const columnName = checkbox.dataset.column;
+        
+        if (isChecked) {
+            selected.push(columnName);
+        }
+        
+        // Habilitar/deshabilitar el input de renombre correspondiente
+        const renameInput = document.querySelector(`input.column-rename-input[data-sheet="${sheetName}"][data-original-name="${columnName}"]`);
+        if (renameInput) {
+            renameInput.disabled = !isChecked;
         }
     });
     
     selectedColumns[sheetName] = selected;
+    
+    // Agregar o quitar automáticamente la hoja de selectedSheets según si tiene columnas
+    if (selected.length > 0) {
+        selectedSheets.add(sheetName);
+        // Actualizar visualmente la pestaña
+        const tab = document.querySelector(`[data-sheet="${sheetName}"]`);
+        if (tab) {
+            tab.classList.add('selected');
+        }
+    } else {
+        selectedSheets.delete(sheetName);
+        // Actualizar visualmente la pestaña
+        const tab = document.querySelector(`[data-sheet="${sheetName}"]`);
+        if (tab) {
+            tab.classList.remove('selected');
+        }
+    }
     
     // Actualizar badge en la pestaña
     const badge = document.getElementById(`badge-${sheetName.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}`);
@@ -565,14 +577,9 @@ function updateGlobalSummary() {
 }
 
 function validateSelection() {
-    if (selectedSheets.size === 0) {
-        alert('Debes seleccionar al menos una hoja para procesar.');
-        return false;
-    }
-    
     const hasColumns = Object.values(selectedColumns).some(cols => cols.length > 0);
     if (!hasColumns) {
-        alert('Debes seleccionar al menos una columna en las hojas seleccionadas.');
+        alert('Debes seleccionar al menos una columna de alguna hoja para continuar.');
         return false;
     }
     
@@ -612,12 +619,35 @@ function showSaveModal(andRun = false) {
 }
 
 function saveProcess(andRun = false) {
+    // Construir mapeos de columnas
+    const columnMappings = {};
+    
+    Array.from(selectedSheets).forEach(sheetName => {
+        const selectedCols = selectedColumns[sheetName] || [];
+        
+        selectedCols.forEach(originalName => {
+            const renameInput = document.querySelector(`input.column-rename-input[data-sheet="${sheetName}"][data-original-name="${originalName}"]`);
+            if (renameInput) {
+                const customName = renameInput.value.trim();
+                
+                // Solo agregar al mapeo si el nombre es diferente al original
+                if (customName && customName !== originalName) {
+                    if (!columnMappings[sheetName]) {
+                        columnMappings[sheetName] = {};
+                    }
+                    columnMappings[sheetName][originalName] = customName;
+                }
+            }
+        });
+    });
+    
     const formData = {
         name: document.getElementById('processName').value,
         description: document.getElementById('processDescription').value,
         source_id: document.getElementById('sourceId').value,
         selected_sheets: Array.from(selectedSheets),
         selected_columns: selectedColumns,
+        column_mappings: Object.keys(columnMappings).length > 0 ? columnMappings : null,
         target_db: document.getElementById('targetDB').value
     };
     
