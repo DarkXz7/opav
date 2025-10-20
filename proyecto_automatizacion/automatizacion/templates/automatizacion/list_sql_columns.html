@@ -169,7 +169,7 @@
                         {% csrf_token %}
                         <div class="mb-3">
                             <label for="processName" class="form-label">Nombre del proceso</label>
-                            <input type="text" class="form-control" id="processName" required>
+                            <input type="text" class="form-control" id="processName" placeholder="Ej: Migración de usuarios" required>
                         </div>
                         
                         <div class="mb-3">
@@ -188,11 +188,47 @@
                                 <i class="fas fa-save me-1"></i>Guardar Proceso
                             </button>
                             <button type="button" class="btn btn-success" id="runProcessBtn">
-                                <i class="fas fa-play me-1"></i>Ejecutar Proceso
+                                <i class="fas fa-play me-1"></i>Guardar y Ejecutar
                             </button>
                         </div>
                     </form>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para confirmar proceso duplicado -->
+<div class="modal fade" id="duplicateProcessModal" tabindex="-1" aria-labelledby="duplicateProcessModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title" id="duplicateProcessModalLabel">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Proceso Duplicado Detectado
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3">Ya existe un proceso con el nombre <strong id="duplicateProcessName"></strong>.</p>
+                <p class="mb-0">¿Qué deseas hacer?</p>
+                <div class="alert alert-info mt-3 mb-0">
+                    <small>
+                        <i class="fas fa-info-circle me-1"></i>
+                        <strong>Actualizar:</strong> Reemplazará la configuración del proceso existente y sus datos en la tabla destino.<br>
+                        <strong>Crear Nuevo:</strong> Creará un proceso independiente con un nombre único.
+                    </small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>Cancelar
+                </button>
+                <button type="button" class="btn btn-primary" id="updateExistingBtn">
+                    <i class="fas fa-sync-alt me-1"></i>Actualizar Existente
+                </button>
+                <button type="button" class="btn btn-success" id="createNewBtn">
+                    <i class="fas fa-plus me-1"></i>Crear Nuevo
+                </button>
             </div>
         </div>
     </div>
@@ -267,12 +303,21 @@ $(document).ready(function() {
     };
     console.log('Función testMessage() disponible en la consola si necesitas hacer pruebas');
     
-    // Obtener ID de proceso de la URL o localStorage
+    // Obtener ID de proceso SOLO de la URL (NO usar localStorage aquí)
+    // El localStorage puede contener IDs de procesos anteriores y causar problemas
     var urlParams = new URLSearchParams(window.location.search);
-    var processId = urlParams.get('process_id') || localStorage.getItem('current_process_id');
+    var processId = urlParams.get('process_id');
     
-    // Si ya existe un proceso, cargar su información
-    if (processId) {
+    console.log('Process ID obtenido de URL:', processId);
+    
+    // Si NO hay process_id en la URL, estamos creando un proceso NUEVO
+    // Limpiar localStorage para evitar confusiones
+    if (!processId) {
+        localStorage.removeItem('current_process_id');
+        console.log('Creando proceso nuevo - localStorage limpiado');
+    } else {
+        console.log('Editando proceso existente con ID:', processId);
+        // Si ya existe un proceso, cargar su información
         $('#processName').val('Proceso de migración ' + processId);
     }
     
@@ -327,6 +372,11 @@ $(document).ready(function() {
     
     // Guardar proceso
     $('#saveProcessBtn').click(function() {
+        saveProcessWithDuplicateCheck();
+    });
+    
+    // Función para guardar proceso con verificación de duplicados
+    function saveProcessWithDuplicateCheck(duplicateAction) {
         // Verificar que haya columnas seleccionadas
         if ($('.column-checkbox:checked').length === 0) {
             showMessage('Debe seleccionar al menos una columna', 'warning');
@@ -361,7 +411,6 @@ $(document).ready(function() {
             name: processName,
             description: $('#processDescription').val(),
             source_id: {{ source.id }},
-            process_id: processId || null,
             selected_database: '{{ connection.selected_database }}',
             selected_tables: ['{{ full_table_name }}'],
             selected_columns: {
@@ -370,6 +419,19 @@ $(document).ready(function() {
             column_mappings: Object.keys(columnMappings).length > 0 ? columnMappings : null,
             target_db: $('#targetDB').val()
         };
+        
+        // IMPORTANTE: Solo agregar process_id si realmente existe
+        // Si enviamos null o undefined, el backend no detectará duplicados correctamente
+        if (processId) {
+            processData.process_id = processId;
+        }
+        
+        // Agregar acción de duplicado si se especificó
+        if (duplicateAction) {
+            processData.duplicate_action = duplicateAction;
+        }
+        
+        console.log('Enviando datos al servidor:', processData);
         
         // Deshabilitar el botón mientras se procesa
         $('#saveProcessBtn').prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Guardando...');
@@ -384,6 +446,20 @@ $(document).ready(function() {
                 'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val() || '{{ csrf_token }}'
             },
             success: function(response) {
+                console.log('Response del servidor:', response);
+                
+                // Verificar si se detectó un duplicado
+                if (response.duplicate_detected) {
+                    console.log('Duplicado detectado! Mostrando modal...');
+                    
+                    // Restaurar el botón
+                    $('#saveProcessBtn').prop('disabled', false).html('<i class="fas fa-save me-1"></i>Guardar Proceso');
+                    
+                    // Mostrar modal de confirmación
+                    showDuplicateModal(response.existing_process_name, response.existing_process_id);
+                    return;
+                }
+                
                 showMessage('✅ Proceso guardado correctamente! Redirigiendo en 2 segundos...', 'success');
                 
                 processId = response.process_id;
@@ -419,6 +495,27 @@ $(document).ready(function() {
                 $('#saveProcessBtn').prop('disabled', false).html('<i class="fas fa-save me-1"></i>Guardar Proceso');
             }
         });
+    }
+    
+    // Función para mostrar modal de duplicados
+    function showDuplicateModal(existingProcessName, existingProcessId) {
+        // Actualizar el contenido del modal con el nombre del proceso existente
+        $('#duplicateProcessName').text(existingProcessName || $('#processName').val());
+        
+        // Mostrar el modal
+        $('#duplicateProcessModal').modal('show');
+    }
+    
+    // Manejador para actualizar proceso existente
+    $('#updateExistingBtn').click(function() {
+        $('#duplicateProcessModal').modal('hide');
+        saveProcessWithDuplicateCheck('update_existing');
+    });
+    
+    // Manejador para crear nuevo proceso
+    $('#createNewBtn').click(function() {
+        $('#duplicateProcessModal').modal('hide');
+        saveProcessWithDuplicateCheck('create_new');
     });
     
     // Ejecutar proceso

@@ -122,6 +122,17 @@ class MigrationProcess(models.Model):
         from .logs.process_tracker import ProcessTracker
         import json
         
+        # ✅ CORRECCIÓN: Refrescar datos desde la base de datos antes de ejecutar
+        # Esto asegura que estamos usando la configuración más reciente
+        self.refresh_from_db()
+        
+        print(f"\n{'='*80}")
+        print(f"🔍 DEBUG - Iniciando ejecución del proceso: {self.name} (ID: {self.id})")
+        print(f"📋 Tablas seleccionadas: {self.selected_tables}")
+        print(f"📋 Columnas seleccionadas: {self.selected_columns}")
+        print(f"📋 Mapeos de columnas: {self.column_mappings}")
+        print(f"{'='*80}\n")
+        
         self.status = 'running'
         self.last_run = timezone.now()
         self.save()
@@ -1505,20 +1516,47 @@ class MigrationProcess(models.Model):
                 
                 print(f"🔍 SQL INSERT: {insert_sql}")
 
-                # Convertir DataFrame a lista de tuplas para inserción masiva
+                # Normalizar DataFrame antes de la inserción usando utilitario reutilizable
+                try:
+                    from .sql_utils import normalize_df_for_sql
+                except Exception as e:
+                    print(f"ERROR: No se pudo importar sql_utils.normalize_df_for_sql: {e}")
+                    raise
+
+                df_normalized, normalization_issues = normalize_df_for_sql(df_datos, strict=False)
+                if normalization_issues:
+                    # Registrar advertencias de normalización en tracker/log
+                    print(f"⚠️ Advertencias de normalización antes de insertar: {normalization_issues}")
+                    
+                    # Crear mensaje detallado para el usuario
+                    warning_msg = f"⚠️ Normalización de datos para '{nombre_tabla_destino}':\n"
+                    for issue in normalization_issues:
+                        warning_msg += f"  • Columna '{issue['column']}': {issue['count']} valores inválidos convertidos a NULL\n"
+                        warning_msg += f"    Ejemplo: '{issue.get('example', 'N/A')}'\n"
+                    
+                    # Imprimir warning completo en el log
+                    print(warning_msg)
+
+                # Convertir DataFrame normalizado a lista de tuplas para inserción
                 valores_a_insertar = []
-                for _, row in df_datos.iterrows():
+                for _, row in df_normalized.iterrows():
                     valores_fila = []
-                    for col in df_datos.columns:
+                    for col in df_normalized.columns:
                         valor = row[col]
+                        # Pandas may keep Python None or numpy.nan; standardize to None
                         if pd.isna(valor):
                             valores_fila.append(None)
                         elif isinstance(valor, pd.Timestamp):
                             valores_fila.append(valor.to_pydatetime())
-                        elif hasattr(valor, 'item'):
-                            valores_fila.append(valor.item())
                         else:
-                            valores_fila.append(valor)
+                            # Si es numpy types, convertir a Python native
+                            try:
+                                if hasattr(valor, 'item'):
+                                    valores_fila.append(valor.item())
+                                else:
+                                    valores_fila.append(valor)
+                            except Exception:
+                                valores_fila.append(valor)
                     valores_a_insertar.append(tuple(valores_fila))
 
                 try:

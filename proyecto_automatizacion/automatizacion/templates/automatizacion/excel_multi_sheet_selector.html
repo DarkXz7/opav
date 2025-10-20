@@ -372,6 +372,42 @@
     </div>
 </div>
 
+<!-- Modal para confirmar proceso duplicado -->
+<div class="modal fade" id="duplicateProcessModal" tabindex="-1" aria-labelledby="duplicateProcessModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title" id="duplicateProcessModalLabel">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Proceso Duplicado Detectado
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3">Ya existe un proceso con el nombre <strong id="duplicateProcessName"></strong>.</p>
+                <p class="mb-0">¿Qué deseas hacer?</p>
+                <div class="alert alert-info mt-3 mb-0">
+                    <small>
+                        <i class="fas fa-info-circle me-1"></i>
+                        <strong>Actualizar:</strong> Reemplazará la configuración del proceso existente y sus datos en la tabla destino.<br>
+                        <strong>Crear Nuevo:</strong> Creará un proceso independiente con un nombre único.
+                    </small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>Cancelar
+                </button>
+                <button type="button" class="btn btn-primary" id="updateExistingBtnExcel">
+                    <i class="fas fa-sync-alt me-1"></i>Actualizar Existente
+                </button>
+                <button type="button" class="btn btn-success" id="createNewBtnExcel">
+                    <i class="fas fa-plus me-1"></i>Crear Nuevo
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Variables globales para JavaScript -->
 <input type="hidden" id="sourceId" value="{{ source.id }}">
 <input type="hidden" id="sheetsData" value="{{ sheets_data|safe }}">
@@ -618,7 +654,7 @@ function showSaveModal(andRun = false) {
     });
 }
 
-function saveProcess(andRun = false) {
+function saveProcess(andRun = false, duplicateAction = null) {
     // Construir mapeos de columnas
     const columnMappings = {};
     
@@ -651,6 +687,11 @@ function saveProcess(andRun = false) {
         target_db: document.getElementById('targetDB').value
     };
     
+    // Agregar acción de duplicado si se especificó
+    if (duplicateAction) {
+        formData.duplicate_action = duplicateAction;
+    }
+    
     // Validar datos
     if (!formData.name.trim()) {
         alert('El nombre del proceso es requerido.');
@@ -668,6 +709,13 @@ function saveProcess(andRun = false) {
     })
     .then(response => response.json())
     .then(data => {
+        // Verificar si se detectó un duplicado
+        if (data.duplicate_detected) {
+            // Mostrar modal de confirmación
+            showDuplicateModal(data.existing_process_name, data.existing_process_id, andRun);
+            return;
+        }
+        
         if (data.success) {
             if (andRun) {
                 window.location.href = `/automatizacion/process/${data.process_id}/run/`;
@@ -683,6 +731,33 @@ function saveProcess(andRun = false) {
         alert('Error de conexión al guardar el proceso.');
     });
 }
+
+// Función para mostrar modal de duplicados
+function showDuplicateModal(existingProcessName, existingProcessId, andRun) {
+    // Guardar estado andRun para uso posterior
+    window.pendingRunAfterSave = andRun;
+    
+    // Actualizar el contenido del modal con el nombre del proceso existente
+    document.getElementById('duplicateProcessName').textContent = existingProcessName || document.getElementById('processName').value;
+    
+    // Mostrar el modal
+    const modal = new bootstrap.Modal(document.getElementById('duplicateProcessModal'));
+    modal.show();
+}
+
+// Event listeners para botones del modal de duplicados
+document.getElementById('updateExistingBtnExcel').addEventListener('click', function() {
+    const modal = bootstrap.Modal.getInstance(document.getElementById('duplicateProcessModal'));
+    modal.hide();
+    saveProcess(window.pendingRunAfterSave || false, 'update_existing');
+});
+
+document.getElementById('createNewBtnExcel').addEventListener('click', function() {
+    const modal = bootstrap.Modal.getInstance(document.getElementById('duplicateProcessModal'));
+    modal.hide();
+    saveProcess(window.pendingRunAfterSave || false, 'create_new');
+});
+
 
 // Función auxiliar para obtener cookie CSRF
 function getCookie(name) {

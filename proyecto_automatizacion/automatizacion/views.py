@@ -239,8 +239,14 @@ def run_process(request, process_id):
     import traceback
     process = get_object_or_404(MigrationProcess, pk=process_id)
     
+    # ✅ CORRECCIÓN: Refrescar el proceso desde la base de datos para asegurar datos actualizados
+    # Esto evita problemas de cache cuando se edita y ejecuta inmediatamente
+    process.refresh_from_db()
+    
     try:
         print(f"🚀 Iniciando ejecución del proceso: {process.name} (ID: {process.id})")
+        print(f"📋 Columnas seleccionadas: {process.selected_columns}")
+        print(f"📋 Mapeos de columnas: {process.column_mappings}")
         
         # ✅ CORRECCIÓN: Usar SOLO process.run() que ya maneja el logging correctamente
         # Esto evita logs duplicados y asegura que MigrationProcessID sea correcto
@@ -523,7 +529,20 @@ def list_connections(request):
 def view_connection(request, connection_id):
     """Muestra detalles de una conexión guardada"""
     connection = get_object_or_404(DatabaseConnection, pk=connection_id)
-    return render(request, 'automatizacion/view_connection.html', {'connection': connection})
+    
+    # Obtener procesos relacionados a través de DataSource
+    # DatabaseConnection -> DataSource -> MigrationProcess
+    related_processes = MigrationProcess.objects.filter(
+        source__connection=connection
+    ).select_related('source').order_by('-created_at')
+    
+    context = {
+        'connection': connection,
+        'related_processes': related_processes,
+        'process_count': related_processes.count()
+    }
+    
+    return render(request, 'automatizacion/view_connection.html', context)
 
 @log_operation("Listado de bases de datos SQL")
 def list_sql_databases(request, connection_id):
@@ -767,23 +786,66 @@ def save_process(request):
         # Obtener fuente de datos
         source = get_object_or_404(DataSource, pk=data.get('source_id'))
         
+        # Obtener acción en caso de duplicado (update_existing o create_new)
+        duplicate_action = data.get('duplicate_action', None)
+        
         # Crear o actualizar proceso
+        # IMPORTANTE: Normalizar process_id - puede venir como None, null (string), '', o no venir
         process_id = data.get('process_id')
+        if process_id in [None, 'null', '', 'undefined']:
+            process_id = None
+            
         process_name = data.get('name')
         
-        print(f"DEBUG: process_id recibido: {process_id}, process_name: {process_name}")
+        print(f"DEBUG: ===== ANÁLISIS DE DUPLICADOS =====")
+        print(f"DEBUG: process_id recibido: {process_id} (tipo: {type(process_id)}, normalizado: {process_id is None})")
+        print(f"DEBUG: process_name: '{process_name}'")
+        print(f"DEBUG: duplicate_action: {duplicate_action}")
         
-        if process_id:
-            # Verificar si el proceso existe
+        # Verificar si ya existe un proceso con el mismo nombre
+        existing_process = MigrationProcess.objects.filter(name=process_name).first()
+        
+        if existing_process:
+            print(f"DEBUG: ✓ Proceso existente encontrado: ID {existing_process.id}, nombre: '{existing_process.name}'")
+        else:
+            print(f"DEBUG: ✗ No se encontró proceso existente con nombre '{process_name}'")
+        
+        # Si existe un proceso con el mismo nombre y NO hay process_id y NO hay acción explícita
+        # Esto significa: usuario intenta crear nuevo proceso con nombre duplicado
+        if existing_process and process_id is None and not duplicate_action:
+            print(f"DEBUG: ✓✓✓ CONDICIONES CUMPLIDAS - Devolviendo duplicate_detected=True")
+            print(f"DEBUG: - existing_process: {existing_process.id}")
+            print(f"DEBUG: - process_id is None: {process_id is None}")
+            print(f"DEBUG: - duplicate_action: {duplicate_action}")
+            return JsonResponse({
+                'duplicate_detected': True,
+                'existing_process_id': existing_process.id,
+                'existing_process_name': existing_process.name,
+                'message': f'Ya existe un proceso llamado "{process_name}"'
+            }, status=200)
+        else:
+            if existing_process:
+                print(f"DEBUG: ✗ No se muestra modal porque:")
+                print(f"DEBUG:   - process_id existe: {bool(process_id)}")
+                print(f"DEBUG:   - duplicate_action existe: {bool(duplicate_action)}")
+        
+        # Manejar la acción del usuario sobre el duplicado
+        if existing_process and duplicate_action == 'update_existing':
+            print(f"DEBUG: Usuario eligió ACTUALIZAR proceso existente: '{process_name}' (ID: {existing_process.id})")
+            process = existing_process
+            process.description = data.get('description', process.description)
+            
+        elif process_id:
+            # Actualización de proceso específico por ID
             try:
                 process = MigrationProcess.objects.get(pk=process_id)
                 print(f"DEBUG: Proceso encontrado para actualización: ID {process.id}, nombre actual: '{process.name}'")
                 
                 # Verificar si el nuevo nombre ya existe en otro proceso
-                existing_process = MigrationProcess.objects.filter(name=process_name).exclude(id=process.id).first()
-                if existing_process:
+                other_process = MigrationProcess.objects.filter(name=process_name).exclude(id=process.id).first()
+                if other_process:
                     return JsonResponse({
-                        'error': f'Ya existe un proceso con el nombre "{process_name}". Por favor, elija un nombre diferente.'
+                        'error': f'Ya existe otro proceso con el nombre "{process_name}". Por favor, elija un nombre diferente.'
                     }, status=400)
                 
                 process.name = process_name
@@ -793,8 +855,7 @@ def save_process(request):
             except MigrationProcess.DoesNotExist:
                 print(f"DEBUG: Proceso con ID {process_id} no encontrado, creando uno nuevo")
                 # Si el proceso no existe, crear uno nuevo
-                existing_process = MigrationProcess.objects.filter(name=process_name).first()
-                if existing_process:
+                if existing_process and duplicate_action != 'create_new':
                     return JsonResponse({
                         'error': f'Ya existe un proceso con el nombre "{process_name}". Por favor, elija un nombre diferente.'
                     }, status=400)
@@ -806,15 +867,19 @@ def save_process(request):
                     source=source
                 )
         else:
-            print(f"DEBUG: Creando nuevo proceso con nombre: '{process_name}'")
-            # Verificar si ya existe un proceso con el mismo nombre
-            existing_process = MigrationProcess.objects.filter(name=process_name).first()
-            if existing_process:
-                return JsonResponse({
-                    'error': f'Ya existe un proceso con el nombre "{process_name}". Por favor, elija un nombre diferente.'
-                }, status=400)
-            
             # Crear nuevo proceso
+            print(f"DEBUG: Creando nuevo proceso con nombre base: '{process_name}'")
+            
+            # Si el usuario eligió "crear nuevo" y ya existe un proceso con ese nombre,
+            # generar un nombre único agregando un sufijo numérico
+            if duplicate_action == 'create_new' and existing_process:
+                base_name = process_name
+                counter = 2
+                while MigrationProcess.objects.filter(name=process_name).exists():
+                    process_name = f"{base_name} ({counter})"
+                    counter += 1
+                print(f"DEBUG: Nombre ajustado a '{process_name}' para evitar duplicados")
+            
             process = MigrationProcess(
                 name=process_name,
                 description=data.get('description', ''),
@@ -827,9 +892,17 @@ def save_process(request):
         elif source.source_type == 'sql':
             process.selected_tables = data.get('selected_tables')
         
+        # ✅ IMPORTANTE: Actualizar SIEMPRE estos campos, incluso si es un proceso existente
         process.selected_columns = data.get('selected_columns')
         process.column_mappings = data.get('column_mappings')  # Guardar mapeos de columnas personalizadas
         process.target_db_name = data.get('target_db', 'DestinoAutomatizacion')
+        
+        print(f"\n{'='*80}")
+        print(f"💾 DEBUG - Guardando proceso: {process.name}")
+        print(f"📋 Tablas seleccionadas: {process.selected_tables}")
+        print(f"📋 Columnas seleccionadas: {process.selected_columns}")
+        print(f"📋 Mapeos de columnas: {process.column_mappings}")
+        print(f"{'='*80}\n")
         
         process.save()
         
@@ -921,13 +994,6 @@ def save_excel_multi_process(request):
         if source.source_type != 'excel':
             return JsonResponse({'error': 'La fuente debe ser un archivo Excel'}, status=400)
         
-        # Verificar si ya existe un proceso con el mismo nombre
-        existing_process = MigrationProcess.objects.filter(name=process_name).first()
-        if existing_process:
-            return JsonResponse({
-                'error': f'Ya existe un proceso con el nombre "{process_name}". Por favor, elija un nombre diferente.'
-            }, status=400)
-        
         # Validar que las hojas seleccionadas tengan columnas
         selected_sheets = data.get('selected_sheets')
         selected_columns = data.get('selected_columns')
@@ -938,18 +1004,60 @@ def save_excel_multi_process(request):
                     'error': f'La hoja "{sheet}" no tiene columnas seleccionadas'
                 }, status=400)
         
-        # Crear nuevo proceso
-        print(f"DEBUG: Creando nuevo proceso Excel multi-hoja: '{process_name}'")
-        process = MigrationProcess(
-            name=process_name,
-            description=data.get('description', ''),
-            source=source,
-            selected_sheets=selected_sheets,
-            selected_columns=selected_columns,
-            column_mappings=data.get('column_mappings'),  # Guardar mapeos de columnas personalizadas
-            target_db_name=data.get('target_db', 'DestinoAutomatizacion'),
-            status='configured'
-        )
+        # Obtener el ID del proceso si se está editando y la acción de duplicado
+        process_id = data.get('process_id')
+        duplicate_action = data.get('duplicate_action')
+        
+        # Verificar si ya existe un proceso con el mismo nombre (solo si no estamos editando uno existente)
+        existing_process = MigrationProcess.objects.filter(name=process_name).first()
+        if existing_process and not process_id and not duplicate_action:
+            print(f"DEBUG: Proceso duplicado detectado: '{process_name}' (ID: {existing_process.id})")
+            return JsonResponse({
+                'duplicate_detected': True,
+                'existing_process_id': existing_process.id,
+                'existing_process_name': existing_process.name,
+                'message': f'Ya existe un proceso llamado "{process_name}"'
+            }, status=200)
+        
+        # Manejar la acción del usuario sobre el duplicado
+        if existing_process and duplicate_action == 'update_existing':
+            print(f"DEBUG: Usuario eligió ACTUALIZAR proceso existente: '{process_name}' (ID: {existing_process.id})")
+            process = existing_process
+            process.description = data.get('description', process.description)
+            
+        elif process_id:
+            # Actualización de proceso específico por ID
+            try:
+                process = MigrationProcess.objects.get(pk=process_id)
+                print(f"DEBUG: Proceso encontrado para actualización: ID {process.id}, nombre actual: '{process.name}'")
+            except MigrationProcess.DoesNotExist:
+                return JsonResponse({'error': 'Proceso no encontrado'}, status=404)
+            
+        else:
+            # Crear nuevo proceso (o cuando duplicate_action == 'create_new')
+            print(f"DEBUG: Creando nuevo proceso Excel multi-hoja: '{process_name}'")
+            
+            # Si el usuario eligió crear nuevo pero el nombre ya existe, agregar sufijo
+            if duplicate_action == 'create_new' and existing_process:
+                base_name = process_name
+                counter = 2
+                while MigrationProcess.objects.filter(name=process_name).exists():
+                    process_name = f"{base_name} ({counter})"
+                    counter += 1
+                print(f"DEBUG: Nombre ajustado a '{process_name}' para evitar duplicados")
+            
+            process = MigrationProcess(
+                name=process_name,
+                source=source,
+                target_db_name=data.get('target_db', 'DestinoAutomatizacion'),
+                status='configured'
+            )
+        
+        # Actualizar campos comunes
+        process.description = data.get('description', process.description if hasattr(process, 'description') else '')
+        process.selected_sheets = selected_sheets
+        process.selected_columns = selected_columns
+        process.column_mappings = data.get('column_mappings')  # Guardar mapeos de columnas personalizadas
         
         process.save()
         print(f"DEBUG: Proceso Excel multi-hoja guardado exitosamente con ID: {process.id}")

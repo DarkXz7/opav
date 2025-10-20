@@ -637,3 +637,46 @@ AttributeError: 'list' object has no attribute 'get'
 2025-10-10 11:15:44,992 - INFO - ================================================================================
 2025-10-10 11:15:44,993 - INFO - Hojas seleccionadas: ['Hoja 1', 'hoja 2']
 2025-10-10 11:15:44,993 - INFO - Columnas seleccionadas: {'Hoja 1': ['ID', 'nombre'], 'hoja 2': ['talla']}
+2025-10-10 15:09:21,820 - INFO - ================================================================================
+2025-10-10 15:09:21,821 - INFO - INICIANDO PROCESAMIENTO EXCEL MULTIHOJA
+2025-10-10 15:09:21,822 - INFO - Proceso: proceso camilo 
+2025-10-10 15:09:21,823 - INFO - Archivo: C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\temp_files\Hoja de cálculo sin título (1)_yoM8kVf.xlsx
+2025-10-10 15:09:21,824 - INFO - ================================================================================
+2025-10-10 15:09:21,824 - INFO - Hojas seleccionadas: ['Hoja 1']
+2025-10-10 15:09:21,825 - INFO - Columnas seleccionadas: {'Hoja 1': ['ID', 'nombre', 'edad', 'genero']}
+2025-10-20 08:05:47,060 - INFO - ================================================================================
+2025-10-20 08:05:47,061 - INFO - INICIANDO PROCESAMIENTO EXCEL MULTIHOJA
+2025-10-20 08:05:47,062 - INFO - Proceso: teste normalizacion
+2025-10-20 08:05:47,062 - INFO - Archivo: C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\temp_files\datos_prueba_normalizacion.xlsx
+2025-10-20 08:05:47,063 - INFO - ================================================================================
+2025-10-20 08:05:47,063 - INFO - Hojas seleccionadas: ['Empleados', 'Productos', 'Ventas']
+2025-10-20 08:05:47,063 - INFO - Columnas seleccionadas: {'Empleados': ['ID_Empleado', 'Nombre_Completo', 'Edad', 'Salario_Mensual', 'Fecha_Ingreso', 'Activo', 'Horas_Trabajo', 'Departamento'], 'Productos': ['Codigo_Producto', 'Nombre_Producto', 'Precio_Unitario', 'Stock_Disponible', 'Fecha_Ultimo_Ingreso', 'Descontinuado', 'Peso_KG'], 'Ventas': ['ID_Venta', 'Cantidad', 'Precio_Total', 'Fecha_Venta', 'Cliente_ID', 'Estado']}
+2025-10-20 08:05:54,860 - INFO - ================================================================================
+2025-10-20 08:05:54,861 - INFO - INICIANDO PROCESAMIENTO EXCEL MULTIHOJA
+2025-10-20 08:05:54,861 - INFO - Proceso: teste normalizacion
+2025-10-20 08:05:54,861 - INFO - Archivo: C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\temp_files\datos_prueba_normalizacion.xlsx
+2025-10-20 08:05:54,862 - INFO - ================================================================================
+2025-10-20 08:05:54,862 - INFO - Hojas seleccionadas: ['Empleados', 'Productos', 'Ventas']
+2025-10-20 08:05:54,863 - INFO - Columnas seleccionadas: {'Empleados': ['ID_Empleado', 'Nombre_Completo', 'Edad', 'Salario_Mensual', 'Fecha_Ingreso', 'Activo', 'Horas_Trabajo', 'Departamento'], 'Productos': ['Codigo_Producto', 'Nombre_Producto', 'Precio_Unitario', 'Stock_Disponible', 'Fecha_Ultimo_Ingreso', 'Descontinuado', 'Peso_KG'], 'Ventas': ['ID_Venta', 'Cantidad', 'Precio_Total', 'Fecha_Venta', 'Cliente_ID', 'Estado']}
+2025-10-20 08:06:03,026 - INFO - ================================================================================
+2025-10-20 08:06:03,026 - INFO - INICIANDO PROCESAMIENTO EXCEL MULTIHOJA
+2025-10-20 08:06:03,027 - INFO - Proceso: teste normalizacion
+2025-10-20 08:06:03,027 - INFO - Archivo: C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\temp_files\datos_prueba_normalizacion.xlsx
+2025-10-20 08:06:03,027 - INFO - ================================================================================
+2025-10-20 08:06:03,028 - INFO - Hojas seleccionadas: ['Empleados', 'Productos', 'Ventas']
+2025-10-20 08:06:03,028 - INFO - Columnas seleccionadas: {'Empleados': ['ID_Empleado', 'Nombre_Completo', 'Edad', 'Salario_Mensual', 'Fecha_Ingreso', 'Activo', 'Horas_Trabajo', 'Departamento'], 'Productos': ['Codigo_Producto', 'Nombre_Producto', 'Precio_Unitario', 'Stock_Disponible', 'Fecha_Ultimo_Ingreso', 'Descontinuado', 'Peso_KG'], 'Ventas': ['ID_Venta', 'Cantidad', 'Precio_Total', 'Fecha_Venta', 'Cliente_ID', 'Estado']}
+2025-10-20 08:06:24,417 - INFO - ================================================================================
+2025-10-20 08:06:24,418 - INFO - INICIANDO PROCESAMIENTO EXCEL MULTIHOJA
+2025-10-20 08:06:24,418 - INFO - Proceso: teste normalizacion
+2025-10-20 08:06:24,419 - INFO - Archivo: C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\temp_files\datos_prueba_normalizacion.xlsx
+2025-10-20 08:06:24,419 - INFO - ================================================================================
+2025-10-20 08:06:24,420 - INFO - Hojas seleccionadas: ['Empleados', 'Productos', 'Ventas']
+2025-10-20 08:06:24,420 - INFO - Columnas seleccionadas: {'Empleados': ['ID_Empleado', 'Nombre_Completo', 'Edad', 'Salario_Mensual', 'Fecha_Ingreso', 'Activo', 'Horas_Trabajo', 'Departamento'], 'Productos': ['Codigo_Producto', 'Nombre_Producto', 'Precio_Unitario', 'Stock_Disponible', 'Fecha_Ultimo_Ingreso', 'Descontinuado', 'Peso_KG'], 'Ventas': ['ID_Venta', 'Cantidad', 'Precio_Total', 'Fecha_Venta', 'Cliente_ID', 'Estado']}
+2025-10-20 08:07:03,470 - INFO - C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\automatizacion\models.py changed, reloading.
+2025-10-20 08:07:39,093 - INFO - ================================================================================
+2025-10-20 08:07:39,094 - INFO - INICIANDO PROCESAMIENTO EXCEL MULTIHOJA
+2025-10-20 08:07:39,094 - INFO - Proceso: teste normalizacion
+2025-10-20 08:07:39,095 - INFO - Archivo: C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\temp_files\datos_prueba_normalizacion.xlsx
+2025-10-20 08:07:39,095 - INFO - ================================================================================
+2025-10-20 08:07:39,096 - INFO - Hojas seleccionadas: ['Empleados', 'Productos', 'Ventas']
+2025-10-20 08:07:39,096 - INFO - Columnas seleccionadas: {'Empleados': ['ID_Empleado', 'Nombre_Completo', 'Edad', 'Salario_Mensual', 'Fecha_Ingreso', 'Activo', 'Horas_Trabajo', 'Departamento'], 'Productos': ['Codigo_Producto', 'Nombre_Producto', 'Precio_Unitario', 'Stock_Disponible', 'Fecha_Ultimo_Ingreso', 'Descontinuado', 'Peso_KG'], 'Ventas': ['ID_Venta', 'Cantidad', 'Precio_Total', 'Fecha_Venta', 'Cliente_ID', 'Estado']}
