@@ -27,73 +27,182 @@
 
 <div class="row">
     <div class="col-md-6">
-        <div class="card mb-4">
+        <div class="main-card mb-3 card">
             <div class="card-header">
-                <h5 class="mb-0"><i class="fas fa-history me-2"></i>Procesos Recientes</h5>
+                <div class="card-header-title">
+                    <i class="pe-7s-clock text-primary me-2"></i>
+                    Procesos Recientes
+                </div>
+                <div class="btn-actions-pane-right">
+                    <span class="badge bg-primary">{{ recent_processes|length }}/5</span>
+                </div>
             </div>
-            <div class="card-body">
+            <div class="card-body p-0">
                 {% if recent_processes %}
-                    <div class="list-group">
+                    <div class="processes-list">
                         {% for process in recent_processes %}
-                            <a href="{% url 'automatizacion:view_process' process.id %}" class="list-group-item list-group-item-action">
-                                <div class="d-flex w-100 justify-content-between">
-                                    <h6 class="mb-1">{{ process.name }}</h6>
-                                    <small class="text-muted">{{ process.created_at|date:"d/m/Y H:i" }}</small>
+                            <div class="process-item p-3 border-bottom {% if forloop.last %}border-0{% endif %}">
+                                <div class="d-flex align-items-center">
+                                    <div class="process-icon me-3">
+                                        <i class="pe-7s-note text-info fs-4"></i>
+                                    </div>
+                                    <div class="process-info flex-grow-1">
+                                        <h6 class="process-name mb-1 text-dark">{{ process.name }}</h6>
+                                        <div class="process-details">
+                                            <div class="process-badges mb-1">
+                                                <span class="badge bg-info me-1">{{ process.source.get_source_type_display }}</span>
+                                                <span class="badge {% if process.status == 'completed' %}bg-success{% elif process.status == 'failed' %}bg-danger{% else %}bg-warning{% endif %}">
+                                                    {{ process.get_status_display }}
+                                                </span>
+                                            </div>
+                                            <small class="text-muted">
+                                                <i class="pe-7s-date me-1"></i>
+                                                {{ process.created_at|timesince }} ago
+                                            </small>
+                                        </div>
+                                    </div>
+                                    <div class="process-actions">
+                                        <a href="{% url 'automatizacion:view_process' process.id %}" 
+                                           class="btn btn-sm btn-outline-primary" 
+                                           title="Ver proceso">
+                                            <i class="pe-7s-look"></i>
+                                        </a>
+                                    </div>
                                 </div>
-                                <small class="d-block">
-                                    <span class="badge bg-info">{{ process.source.get_source_type_display }}</span>
-                                    <span class="badge {% if process.status == 'completed' %}bg-success{% elif process.status == 'failed' %}bg-danger{% else %}bg-secondary{% endif %}">
-                                        {{ process.get_status_display }}
-                                    </span>
-                                </small>
-                            </a>
+                            </div>
                         {% endfor %}
                     </div>
                 {% else %}
-                    <div class="alert alert-info mb-0">
-                        No hay procesos guardados. <a href="{% url 'automatizacion:new_process' %}">Crea uno nuevo</a>.
+                    <div class="empty-state text-center py-4">
+                        <div class="empty-icon mb-3">
+                            <i class="pe-7s-note text-muted" style="font-size: 3rem;"></i>
+                        </div>
+                        <h6 class="text-muted mb-2">No hay procesos guardados</h6>
+                        <p class="text-muted small mb-3">Inicia tu primer proceso de automatización</p>
+                        <a href="{% url 'automatizacion:new_process' %}" class="btn btn-sm btn-primary">
+                            <i class="pe-7s-plus me-1"></i>
+                            Nuevo Proceso
+                        </a>
                     </div>
                 {% endif %}
             </div>
-            <div class="card-footer text-center">
-                <a href="{% url 'automatizacion:list_processes' %}" class="btn btn-sm btn-outline-primary">
-                    Ver todos los procesos
-                </a>
+            <div class="card-footer bg-light">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="footer-info">
+                        <small class="text-muted">
+                            {% if recent_processes %}
+                                Mostrando últimos 5 procesos
+                            {% else %}
+                                0 procesos disponibles
+                            {% endif %}
+                        </small>
+                    </div>
+                    <div class="footer-actions">
+                        <a href="{% url 'automatizacion:new_process' %}" 
+                           class="btn btn-sm btn-success me-2" 
+                           title="Nuevo proceso">
+                            <i class="pe-7s-plus me-1"></i>
+                            Nuevo
+                        </a>
+                        <a href="{% url 'automatizacion:list_processes' %}" 
+                           class="btn btn-sm btn-outline-primary" 
+                           title="Ver todos los procesos">
+                            <i class="pe-7s-search me-1"></i>
+                            Explorar
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
     
     <div class="col-md-6">
-        <div class="card mb-4">
+        <div class="main-card mb-3 card">
             <div class="card-header">
-                <h5 class="mb-0"><i class="fas fa-server me-2"></i>Conexiones Guardadas</h5>
+                <div class="card-header-title">
+                    <i class="pe-7s-server text-primary me-2"></i>
+                    Conexiones Guardadas
+                </div>
+                <div class="btn-actions-pane-right">
+                    <span class="badge bg-primary">{{ saved_connections|length }}/5</span>
+                </div>
             </div>
-            <div class="card-body">
+            <div class="card-body p-0">
                 {% if saved_connections %}
-                    <div class="list-group">
+                    <div class="connections-list">
                         {% for connection in saved_connections %}
-                            <a href="{% url 'automatizacion:view_connection' connection.id %}" class="list-group-item list-group-item-action">
-                                <div class="d-flex w-100 justify-content-between">
-                                    <h6 class="mb-1">{{ connection.name }}</h6>
-                                    <small class="text-muted">Último uso: {% if connection.last_used %}{{ connection.last_used|date:"d/m/Y H:i" }}{% else %}Nunca{% endif %}</small>
+                            <div class="connection-item p-3 border-bottom {% if forloop.last %}border-0{% endif %}">
+                                <div class="d-flex align-items-center">
+                                    <div class="connection-icon me-3">
+                                        <i class="pe-7s-database text-success fs-4"></i>
+                                    </div>
+                                    <div class="connection-info flex-grow-1">
+                                        <h6 class="connection-name mb-1 text-dark">{{ connection.name }}</h6>
+                                        <div class="connection-details">
+                                            <small class="text-muted d-block">
+                                                <i class="pe-7s-server me-1"></i>{{ connection.server }}/{{ connection.database }}
+                                            </small>
+                                            <small class="text-muted">
+                                                <i class="pe-7s-clock me-1"></i>
+                                                {% if connection.last_used %}
+                                                    {{ connection.last_used|timesince }} ago
+                                                {% else %}
+                                                    Nunca usado
+                                                {% endif %}
+                                            </small>
+                                        </div>
+                                    </div>
+                                    <div class="connection-actions">
+                                        <a href="{% url 'automatizacion:view_connection' connection.id %}" 
+                                           class="btn btn-sm btn-outline-primary" 
+                                           title="Ver conexión">
+                                            <i class="pe-7s-look"></i>
+                                        </a>
+                                    </div>
                                 </div>
-                                <small class="text-muted">{{ connection.server }}/{{ connection.database }}</small>
-                            </a>
+                            </div>
                         {% endfor %}
                     </div>
                 {% else %}
-                    <div class="alert alert-info mb-0">
-                        No hay conexiones guardadas. <a href="{% url 'automatizacion:connect_sql' %}">Crea una nueva</a>.
+                    <div class="empty-state text-center py-4">
+                        <div class="empty-icon mb-3">
+                            <i class="pe-7s-server text-muted" style="font-size: 3rem;"></i>
+                        </div>
+                        <h6 class="text-muted mb-2">No hay conexiones guardadas</h6>
+                        <p class="text-muted small mb-3">Crea tu primera conexión para comenzar</p>
+                        <a href="{% url 'automatizacion:connect_sql' %}" class="btn btn-sm btn-primary">
+                            <i class="pe-7s-plus me-1"></i>
+                            Nueva Conexión
+                        </a>
                     </div>
                 {% endif %}
             </div>
-            <div class="card-footer text-center">
-                <a href="{% url 'automatizacion:connect_sql' %}" class="btn btn-sm btn-outline-primary">
-                    Nueva conexión
-                </a>
-                <a href="{% url 'automatizacion:list_connections' %}" class="btn btn-sm btn-outline-secondary ms-2">
-                    Ver todas
-                </a>
+            <div class="card-footer bg-light">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="footer-info">
+                        <small class="text-muted">
+                            {% if saved_connections %}
+                                Mostrando últimas 5 conexiones
+                            {% else %}
+                                0 conexiones disponibles
+                            {% endif %}
+                        </small>
+                    </div>
+                    <div class="footer-actions">
+                        <a href="{% url 'automatizacion:connect_sql' %}" 
+                           class="btn btn-sm btn-primary me-2" 
+                           title="Nueva conexión">
+                            <i class="pe-7s-plus me-1"></i>
+                            Nueva
+                        </a>
+                        <a href="{% url 'automatizacion:list_connections' %}" 
+                           class="btn btn-sm btn-outline-primary" 
+                           title="Ver todas las conexiones">
+                            <i class="pe-7s-search me-1"></i>
+                            Explorar
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -158,4 +267,146 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Estilos para las listas de procesos y conexiones */
+.processes-list, .connections-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.process-item, .connection-item {
+    transition: all 0.3s ease;
+    border-radius: 0 !important;
+}
+
+.process-item:hover, .connection-item:hover {
+    background-color: #f8f9fa;
+    transform: translateX(2px);
+}
+
+.process-icon, .connection-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #e3f2fd 0%, #f8f9fa 100%);
+}
+
+.process-name, .connection-name {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.process-details, .connection-details {
+    line-height: 1.2;
+}
+
+.process-badges .badge {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+}
+
+.process-actions, .connection-actions {
+    display: flex;
+    align-items: center;
+}
+
+.process-actions .btn, .connection-actions .btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.process-actions .btn:hover, .connection-actions .btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+/* Empty state styles */
+.empty-state {
+    padding: 2rem 1rem;
+}
+
+.empty-icon i {
+    opacity: 0.5;
+}
+
+/* Card footer improvements */
+.card-footer {
+    border-top: 1px solid #e9ecef;
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+}
+
+.footer-info small {
+    font-style: italic;
+}
+
+.footer-actions .btn {
+    transition: all 0.3s ease;
+}
+
+.footer-actions .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+/* Badge in header */
+.card-header .badge {
+    font-size: 0.75rem;
+    padding: 0.35rem 0.65rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .process-item, .connection-item {
+        padding: 1rem !important;
+    }
+    
+    .process-icon, .connection-icon {
+        width: 35px;
+        height: 35px;
+    }
+    
+    .process-name, .connection-name {
+        font-size: 0.9rem;
+    }
+    
+    .footer-actions {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .footer-actions .btn {
+        width: 100%;
+    }
+}
+
+/* Scroll styling for lists */
+.processes-list::-webkit-scrollbar, .connections-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+.processes-list::-webkit-scrollbar-track, .connections-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.processes-list::-webkit-scrollbar-thumb, .connections-list::-webkit-scrollbar-thumb {
+    background: #0e7490;
+    border-radius: 10px;
+}
+
+.processes-list::-webkit-scrollbar-thumb:hover, .connections-list::-webkit-scrollbar-thumb:hover {
+    background: #0891b2;
+}
+</style>
 {% endblock %}

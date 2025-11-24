@@ -104,6 +104,21 @@ DATABASES = {
             'unicode_results': True,
             'host_is_server': True,
         },
+    },
+    # Alias adicional para tabla ProcesosGuardados (misma base que 'destino')
+    # Se usa específicamente para el modelo que sincroniza procesos Django → SQL Server
+    'sqlserver': {
+        'ENGINE': 'mssql',
+        'NAME': 'DestinoAutomatizacion',  # Misma base de datos que 'destino'
+        'USER': 'miguel',
+        'PASSWORD': '16474791@',
+        'HOST': 'localhost\\SQLEXPRESS',
+        'PORT': '',
+        'OPTIONS': {
+            'driver': 'ODBC Driver 17 for SQL Server',
+            'unicode_results': True,
+            'host_is_server': True,
+        },
     }
 }
 

@@ -285,6 +285,22 @@ class SQLServerConnector:
         Si se proporciona una base de datos, se conecta a ella; de lo contrario,
         se conecta al servidor sin especificar una base de datos.
         """
+        # Verificar drivers ODBC disponibles
+        try:
+            available_drivers = pyodbc.drivers()
+            print(f"Drivers ODBC disponibles: {available_drivers}")
+            
+            # Verificar si el driver necesario está disponible
+            sql_drivers = [d for d in available_drivers if 'SQL Server' in d]
+            print(f"Drivers SQL Server disponibles: {sql_drivers}")
+            
+            if not sql_drivers:
+                print("ERROR: No se encontraron drivers de SQL Server")
+                return False
+                
+        except Exception as e:
+            print(f"Error al verificar drivers ODBC: {str(e)}")
+            return False
         try:
             # Si se proporciona una base de datos en la llamada, usarla; de lo contrario, usar la del objeto
             db_to_use = database if database is not None else self.database
@@ -295,15 +311,23 @@ class SQLServerConnector:
                 # Conectar solo al servidor sin especificar base de datos
                 connection_string = f"DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={self.server},{self.port};UID={self.username};PWD={self.password}"
             
+            print(f"Intentando conectar con: SERVER={self.server},{self.port}, USER={self.username}")
             self.conn = pyodbc.connect(connection_string)
             
             # Actualizar la base de datos actual si la conexión es exitosa y se proporcionó una
             if database is not None:
                 self.database = database
                 
+            print("Conexión exitosa!")
             return True
+        except pyodbc.Error as e:
+            error_msg = f"Error ODBC al conectar a SQL Server: {str(e)}"
+            if len(e.args) > 1:
+                error_msg += f" - Código: {e.args[0]}, Mensaje: {e.args[1]}"
+            print(error_msg)
+            return False
         except Exception as e:
-            print(f"Error al conectar a SQL Server: {str(e)}")
+            print(f"Error general al conectar a SQL Server: {str(e)} - Tipo: {type(e).__name__}")
             return False
             
     def get_databases(self):

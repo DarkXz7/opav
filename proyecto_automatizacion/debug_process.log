@@ -680,3 +680,839 @@ AttributeError: 'list' object has no attribute 'get'
 2025-10-20 08:07:39,095 - INFO - ================================================================================
 2025-10-20 08:07:39,096 - INFO - Hojas seleccionadas: ['Empleados', 'Productos', 'Ventas']
 2025-10-20 08:07:39,096 - INFO - Columnas seleccionadas: {'Empleados': ['ID_Empleado', 'Nombre_Completo', 'Edad', 'Salario_Mensual', 'Fecha_Ingreso', 'Activo', 'Horas_Trabajo', 'Departamento'], 'Productos': ['Codigo_Producto', 'Nombre_Producto', 'Precio_Unitario', 'Stock_Disponible', 'Fecha_Ultimo_Ingreso', 'Descontinuado', 'Peso_KG'], 'Ventas': ['ID_Venta', 'Cantidad', 'Precio_Total', 'Fecha_Venta', 'Cliente_ID', 'Estado']}
+2025-10-20 10:00:21,000 - INFO - ================================================================================
+2025-10-20 10:00:21,000 - INFO - INICIANDO PROCESAMIENTO EXCEL MULTIHOJA
+2025-10-20 10:00:21,001 - INFO - Proceso: Test44
+2025-10-20 10:00:21,001 - INFO - Archivo: C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\temp_files\datos_prueba_normalizacion_GH7BmS5.xlsx
+2025-10-20 10:00:21,002 - INFO - ================================================================================
+2025-10-20 10:00:21,002 - INFO - Hojas seleccionadas: ['Empleados']
+2025-10-20 10:00:21,002 - INFO - Columnas seleccionadas: {'Empleados': ['ID_Empleado', 'Nombre_Completo', 'Edad', 'Salario_Mensual', 'Fecha_Ingreso', 'Activo', 'Horas_Trabajo', 'Departamento']}
+2025-10-20 10:00:21,333 - INFO - Actualizando proceso existente: Test44 (ID: 1)
+2025-10-20 10:00:21,338 - INFO - Proceso 'Test44' actualizado exitosamente (ID: 1, Versión: 3)
+2025-10-20 10:01:47,447 - INFO - Insertando nuevo proceso: migracion_de_hojas_2
+2025-10-20 10:01:47,455 - ERROR - Error sincronizando proceso 'migracion de hojas 2' a SQL Server: No results.  Previous SQL was not a query.
+Traceback (most recent call last):
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 98, in inner
+    return func(*args, **kwargs)
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\mssql\base.py", line 714, in fetchone
+    row = self.cursor.fetchone()
+pyodbc.ProgrammingError: No results.  Previous SQL was not a query.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\automatizacion\process_sync.py", line 212, in sync_process_to_sqlserver
+    proceso_id = cursor.fetchone()[0]
+                 ~~~~~~~~~~~~~~~^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 97, in inner
+    with self:
+         ^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 98, in inner
+    return func(*args, **kwargs)
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\mssql\base.py", line 714, in fetchone
+    row = self.cursor.fetchone()
+django.db.utils.ProgrammingError: No results.  Previous SQL was not a query.
+2025-10-20 10:02:18,597 - INFO - Actualizando proceso existente: migracion_de_hojas_2 (ID: 2)
+2025-10-20 10:02:18,603 - INFO - Proceso 'migracion_de_hojas_2' actualizado exitosamente (ID: 2, Versión: 2)
+2025-10-20 10:02:18,608 - INFO - Campo UltimaEjecucion actualizado para 'migracion_de_hojas_2'
+2025-10-20 10:02:18,780 - INFO - Actualizando proceso existente: migracion_de_hojas_2 (ID: 2)
+2025-10-20 10:02:18,786 - INFO - Proceso 'migracion_de_hojas_2' actualizado exitosamente (ID: 2, Versión: 3)
+2025-10-20 10:02:28,373 - INFO - Actualizando proceso existente: migracion_de_hojas_2 (ID: 2)
+2025-10-20 10:02:28,375 - INFO - Proceso 'migracion_de_hojas_2' actualizado exitosamente (ID: 2, Versión: 4)
+2025-10-20 10:02:28,378 - INFO - Campo UltimaEjecucion actualizado para 'migracion_de_hojas_2'
+2025-10-20 10:02:28,476 - INFO - Actualizando proceso existente: migracion_de_hojas_2 (ID: 2)
+2025-10-20 10:02:28,478 - INFO - Proceso 'migracion_de_hojas_2' actualizado exitosamente (ID: 2, Versión: 5)
+2025-10-22 08:38:17,809 - INFO - ================================================================================
+2025-10-22 08:38:17,809 - INFO - INICIANDO PROCESAMIENTO EXCEL MULTIHOJA
+2025-10-22 08:38:17,810 - INFO - Proceso: procesomiguel65
+2025-10-22 08:38:17,810 - INFO - Archivo: C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\temp_files\datos_prueba_normalizacion_IruubKR.xlsx
+2025-10-22 08:38:17,810 - INFO - ================================================================================
+2025-10-22 08:38:17,810 - INFO - Hojas seleccionadas: ['Empleados', 'Productos']
+2025-10-22 08:38:17,810 - INFO - Columnas seleccionadas: {'Empleados': ['ID_Empleado', 'Nombre_Completo'], 'Productos': ['Codigo_Producto', 'Nombre_Producto', 'Precio_Unitario', 'Stock_Disponible', 'Fecha_Ultimo_Ingreso', 'Descontinuado', 'Peso_KG']}
+2025-10-22 08:38:18,156 - INFO - Actualizando proceso existente: procesomiguel65 (ID: 3)
+2025-10-22 08:38:18,160 - INFO - Proceso 'procesomiguel65' actualizado exitosamente (ID: 3, Versión: 3)
+2025-10-22 08:51:31,982 - INFO - Insertando nuevo proceso: test66
+2025-10-22 08:51:31,987 - ERROR - Error sincronizando proceso 'test66' a SQL Server: No results.  Previous SQL was not a query.
+Traceback (most recent call last):
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 98, in inner
+    return func(*args, **kwargs)
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\mssql\base.py", line 714, in fetchone
+    row = self.cursor.fetchone()
+pyodbc.ProgrammingError: No results.  Previous SQL was not a query.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\automatizacion\process_sync.py", line 212, in sync_process_to_sqlserver
+    proceso_id = cursor.fetchone()[0]
+                 ~~~~~~~~~~~~~~~^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 97, in inner
+    with self:
+         ^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 98, in inner
+    return func(*args, **kwargs)
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\mssql\base.py", line 714, in fetchone
+    row = self.cursor.fetchone()
+django.db.utils.ProgrammingError: No results.  Previous SQL was not a query.
+2025-10-22 08:51:32,938 - INFO - Actualizando proceso existente: test66 (ID: 4)
+2025-10-22 08:51:32,942 - INFO - Proceso 'test66' actualizado exitosamente (ID: 4, Versión: 2)
+2025-10-22 08:51:32,944 - INFO - Campo UltimaEjecucion actualizado para 'test66'
+2025-10-22 08:51:32,956 - INFO - ================================================================================
+2025-10-22 08:51:32,957 - INFO - INICIANDO PROCESAMIENTO EXCEL MULTIHOJA
+2025-10-22 08:51:32,957 - INFO - Proceso: test66
+2025-10-22 08:51:32,957 - INFO - Archivo: C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\temp_files\hoja prueba estadarizacion de datus_gvMXl4K.xlsx
+2025-10-22 08:51:32,957 - INFO - ================================================================================
+2025-10-22 08:51:32,957 - INFO - Hojas seleccionadas: ['hoja 2']
+2025-10-22 08:51:32,958 - INFO - Columnas seleccionadas: {'hoja 2': ['fecha', 'codigo', 'producto', 'cantidad', 'precio', 'activo', 'categoria']}
+2025-10-22 08:51:33,045 - INFO - Actualizando proceso existente: test66 (ID: 4)
+2025-10-22 08:51:33,048 - INFO - Proceso 'test66' actualizado exitosamente (ID: 4, Versión: 3)
+2025-10-22 09:02:12,388 - INFO - C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\automatizacion\models.py changed, reloading.
+2025-10-22 09:22:47,169 - INFO - ================================================================================
+2025-10-22 09:22:47,170 - INFO - INICIANDO PROCESAMIENTO EXCEL MULTIHOJA
+2025-10-22 09:22:47,170 - INFO - Proceso: TestDuplicado143r
+2025-10-22 09:22:47,170 - INFO - Archivo: C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\temp_files\hoja prueba estadarizacion de datus_xNhdtWG.xlsx
+2025-10-22 09:22:47,171 - INFO - ================================================================================
+2025-10-22 09:22:47,171 - INFO - Hojas seleccionadas: ['Hoja 1', 'hoja 2']
+2025-10-22 09:22:47,171 - INFO - Columnas seleccionadas: {'hoja 2': ['fecha', 'fecha', 'fecha', 'codigo', 'codigo', 'codigo', 'producto', 'producto', 'producto', 'cantidad', 'cantidad', 'cantidad', 'precio', 'precio', 'precio', 'activo', 'activo', 'activo', 'categoria', 'categoria', 'categoria'], 'Hoja 1': ['ID', 'ID', 'ID', 'nombre', 'nombre', 'nombre', 'edad', 'edad', 'edad', 'genero', 'genero', 'genero']}
+2025-10-22 09:22:47,447 - INFO - Actualizando proceso existente: TestDuplicado143r (ID: 5)
+2025-10-22 09:22:47,453 - INFO - Proceso 'TestDuplicado143r' actualizado exitosamente (ID: 5, Versión: 3)
+2025-10-22 09:26:18,703 - INFO - Actualizando proceso existente: TestDuplicado143r (ID: 5)
+2025-10-22 09:26:18,711 - INFO - Proceso 'TestDuplicado143r' actualizado exitosamente (ID: 5, Versión: 4)
+2025-10-22 09:26:18,719 - INFO - Campo UltimaEjecucion actualizado para 'TestDuplicado143r'
+2025-10-22 09:26:18,869 - INFO - ================================================================================
+2025-10-22 09:26:18,869 - INFO - INICIANDO PROCESAMIENTO EXCEL MULTIHOJA
+2025-10-22 09:26:18,870 - INFO - Proceso: TestDuplicado143r
+2025-10-22 09:26:18,870 - INFO - Archivo: C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\temp_files\hoja prueba estadarizacion de datus_xNhdtWG.xlsx
+2025-10-22 09:26:18,871 - INFO - ================================================================================
+2025-10-22 09:26:18,871 - INFO - Hojas seleccionadas: ['Hoja 1', 'hoja 2']
+2025-10-22 09:26:18,872 - INFO - Columnas seleccionadas: {'hoja 2': ['fecha', 'fecha', 'fecha', 'codigo', 'codigo', 'codigo', 'producto', 'producto', 'producto', 'cantidad', 'cantidad', 'cantidad', 'precio', 'precio', 'precio', 'activo', 'activo', 'activo', 'categoria', 'categoria', 'categoria'], 'Hoja 1': ['ID', 'ID', 'ID', 'nombre', 'nombre', 'nombre', 'edad', 'edad', 'edad', 'genero', 'genero', 'genero']}
+2025-10-22 09:26:19,104 - INFO - Actualizando proceso existente: TestDuplicado143r (ID: 5)
+2025-10-22 09:26:19,111 - INFO - Proceso 'TestDuplicado143r' actualizado exitosamente (ID: 5, Versión: 5)
+2025-10-22 09:29:43,239 - INFO - C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\automatizacion\models.py changed, reloading.
+2025-10-22 09:49:08,202 - INFO - ================================================================================
+2025-10-22 09:49:08,203 - INFO - INICIANDO PROCESAMIENTO EXCEL MULTIHOJA
+2025-10-22 09:49:08,203 - INFO - Proceso: normalizaciondatos
+2025-10-22 09:49:08,204 - INFO - Archivo: C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\temp_files\hoja prueba estadarizacion de datus_k0oNBFH.xlsx
+2025-10-22 09:49:08,204 - INFO - ================================================================================
+2025-10-22 09:49:08,204 - INFO - Hojas seleccionadas: ['Hoja 1', 'hoja 2']
+2025-10-22 09:49:08,205 - INFO - Columnas seleccionadas: {'Hoja 1': ['ID', 'nombre', 'edad', 'genero'], 'hoja 2': ['fecha', 'codigo']}
+2025-10-22 09:49:08,457 - INFO - Actualizando proceso existente: normalizaciondatos (ID: 6)
+2025-10-22 09:49:08,463 - INFO - Proceso 'normalizaciondatos' actualizado exitosamente (ID: 6, Versión: 3)
+2025-10-22 09:49:39,734 - WARNING - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-10-22 09:50:25,836 - INFO - Actualizando proceso existente: normalizaciondatos (ID: 6)
+2025-10-22 09:50:25,870 - INFO - Proceso 'normalizaciondatos' actualizado exitosamente (ID: 6, Versión: 4)
+2025-10-22 09:50:25,875 - INFO - Campo UltimaEjecucion actualizado para 'normalizaciondatos'
+2025-10-22 09:50:26,060 - INFO - ================================================================================
+2025-10-22 09:50:26,060 - INFO - INICIANDO PROCESAMIENTO EXCEL MULTIHOJA
+2025-10-22 09:50:26,061 - INFO - Proceso: normalizaciondatos
+2025-10-22 09:50:26,061 - INFO - Archivo: C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\temp_files\hoja prueba estadarizacion de datus_k0oNBFH.xlsx
+2025-10-22 09:50:26,062 - INFO - ================================================================================
+2025-10-22 09:50:26,062 - INFO - Hojas seleccionadas: ['Hoja 1', 'hoja 2']
+2025-10-22 09:50:26,063 - INFO - Columnas seleccionadas: {'Hoja 1': ['ID', 'nombre', 'edad', 'genero'], 'hoja 2': ['fecha', 'codigo']}
+2025-10-22 09:50:26,284 - INFO - Actualizando proceso existente: normalizaciondatos (ID: 6)
+2025-10-22 09:50:26,291 - INFO - Proceso 'normalizaciondatos' actualizado exitosamente (ID: 6, Versión: 5)
+2025-10-22 09:53:36,248 - INFO - Insertando nuevo proceso: siu
+2025-10-22 09:53:36,257 - ERROR - Error sincronizando proceso 'siu' a SQL Server: No results.  Previous SQL was not a query.
+Traceback (most recent call last):
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 98, in inner
+    return func(*args, **kwargs)
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\mssql\base.py", line 714, in fetchone
+    row = self.cursor.fetchone()
+pyodbc.ProgrammingError: No results.  Previous SQL was not a query.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\automatizacion\process_sync.py", line 212, in sync_process_to_sqlserver
+    proceso_id = cursor.fetchone()[0]
+                 ~~~~~~~~~~~~~~~^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 97, in inner
+    with self:
+         ^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 98, in inner
+    return func(*args, **kwargs)
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\mssql\base.py", line 714, in fetchone
+    row = self.cursor.fetchone()
+django.db.utils.ProgrammingError: No results.  Previous SQL was not a query.
+2025-10-22 09:53:37,937 - INFO - Actualizando proceso existente: siu (ID: 7)
+2025-10-22 09:53:37,946 - INFO - Proceso 'siu' actualizado exitosamente (ID: 7, Versión: 2)
+2025-10-22 09:53:37,953 - INFO - Campo UltimaEjecucion actualizado para 'siu'
+2025-10-22 09:53:37,983 - INFO - ================================================================================
+2025-10-22 09:53:37,983 - INFO - INICIANDO PROCESAMIENTO EXCEL MULTIHOJA
+2025-10-22 09:53:37,983 - INFO - Proceso: siu
+2025-10-22 09:53:37,984 - INFO - Archivo: C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\temp_files\hoja prueba estadarizacion de datus_ZNWoYtx.xlsx
+2025-10-22 09:53:37,984 - INFO - ================================================================================
+2025-10-22 09:53:37,985 - INFO - Hojas seleccionadas: ['hoja 2']
+2025-10-22 09:53:37,985 - INFO - Columnas seleccionadas: {'hoja 2': ['fecha', 'codigo', 'cantidad', 'categoria']}
+2025-10-22 09:53:38,181 - INFO - Actualizando proceso existente: siu (ID: 7)
+2025-10-22 09:53:38,190 - INFO - Proceso 'siu' actualizado exitosamente (ID: 7, Versión: 3)
+2025-10-22 09:55:07,846 - INFO - C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\automatizacion\views.py changed, reloading.
+2025-10-22 09:56:33,993 - INFO - ================================================================================
+2025-10-22 09:56:33,993 - INFO - INICIANDO PROCESAMIENTO EXCEL MULTIHOJA
+2025-10-22 09:56:33,994 - INFO - Proceso: si2
+2025-10-22 09:56:33,994 - INFO - Archivo: C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\temp_files\hoja prueba estadarizacion de datus_fAXl56q.xlsx
+2025-10-22 09:56:33,994 - INFO - ================================================================================
+2025-10-22 09:56:33,995 - INFO - Hojas seleccionadas: ['hoja 2']
+2025-10-22 09:56:33,995 - INFO - Columnas seleccionadas: {'hoja 2': ['fecha', 'codigo']}
+2025-10-22 09:56:34,221 - INFO - Actualizando proceso existente: si2 (ID: 8)
+2025-10-22 09:56:34,228 - INFO - Proceso 'si2' actualizado exitosamente (ID: 8, Versión: 3)
+2025-10-22 09:56:34,337 - WARNING - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-10-22 09:56:46,881 - WARNING - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-10-22 09:56:47,795 - WARNING - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-10-22 10:00:56,639 - INFO - ================================================================================
+2025-10-22 10:00:56,639 - INFO - INICIANDO PROCESAMIENTO EXCEL MULTIHOJA
+2025-10-22 10:00:56,640 - INFO - Proceso: siu89
+2025-10-22 10:00:56,640 - INFO - Archivo: C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\temp_files\hoja prueba estadarizacion de datus_fAXl56q.xlsx
+2025-10-22 10:00:56,641 - INFO - ================================================================================
+2025-10-22 10:00:56,641 - INFO - Hojas seleccionadas: ['hoja 2']
+2025-10-22 10:00:56,641 - INFO - Columnas seleccionadas: {'hoja 2': ['fecha', 'codigo', 'cantidad']}
+2025-10-22 10:00:56,804 - INFO - Actualizando proceso existente: siu89 (ID: 9)
+2025-10-22 10:00:56,810 - INFO - Proceso 'siu89' actualizado exitosamente (ID: 9, Versión: 3)
+2025-10-22 10:02:41,243 - INFO - Insertando nuevo proceso: siu993
+2025-10-22 10:02:41,250 - ERROR - Error sincronizando proceso 'siu993' a SQL Server: No results.  Previous SQL was not a query.
+Traceback (most recent call last):
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 98, in inner
+    return func(*args, **kwargs)
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\mssql\base.py", line 714, in fetchone
+    row = self.cursor.fetchone()
+pyodbc.ProgrammingError: No results.  Previous SQL was not a query.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\automatizacion\process_sync.py", line 212, in sync_process_to_sqlserver
+    proceso_id = cursor.fetchone()[0]
+                 ~~~~~~~~~~~~~~~^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 97, in inner
+    with self:
+         ^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 98, in inner
+    return func(*args, **kwargs)
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\mssql\base.py", line 714, in fetchone
+    row = self.cursor.fetchone()
+django.db.utils.ProgrammingError: No results.  Previous SQL was not a query.
+2025-10-22 10:02:42,329 - INFO - Actualizando proceso existente: siu993 (ID: 10)
+2025-10-22 10:02:42,334 - INFO - Proceso 'siu993' actualizado exitosamente (ID: 10, Versión: 2)
+2025-10-22 10:02:42,340 - INFO - Campo UltimaEjecucion actualizado para 'siu993'
+2025-10-22 10:02:42,370 - INFO - ================================================================================
+2025-10-22 10:02:42,371 - INFO - INICIANDO PROCESAMIENTO EXCEL MULTIHOJA
+2025-10-22 10:02:42,371 - INFO - Proceso: siu993
+2025-10-22 10:02:42,371 - INFO - Archivo: C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\temp_files\hoja prueba estadarizacion de datus_kvtI5gZ.xlsx
+2025-10-22 10:02:42,372 - INFO - ================================================================================
+2025-10-22 10:02:42,372 - INFO - Hojas seleccionadas: ['hoja 2']
+2025-10-22 10:02:42,372 - INFO - Columnas seleccionadas: {'hoja 2': ['fecha', 'codigo', 'cantidad']}
+2025-10-22 10:02:42,545 - INFO - Actualizando proceso existente: siu993 (ID: 10)
+2025-10-22 10:02:42,551 - INFO - Proceso 'siu993' actualizado exitosamente (ID: 10, Versión: 3)
+2025-10-22 10:16:28,484 - INFO - C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\automatizacion\sql_utils.py changed, reloading.
+2025-10-22 10:25:51,077 - INFO - ================================================================================
+2025-10-22 10:25:51,078 - INFO - INICIANDO PROCESAMIENTO EXCEL MULTIHOJA
+2025-10-22 10:25:51,079 - INFO - Proceso: apa
+2025-10-22 10:25:51,079 - INFO - Archivo: C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\temp_files\hoja prueba estadarizacion de datus (1)_iYLarWC.xlsx
+2025-10-22 10:25:51,079 - INFO - ================================================================================
+2025-10-22 10:25:51,080 - INFO - Hojas seleccionadas: ['Hoja 1']
+2025-10-22 10:25:51,080 - INFO - Columnas seleccionadas: {'hoja 2': [], 'Hoja 1': ['ID']}
+2025-10-22 10:25:51,275 - INFO - Actualizando proceso existente: apa (ID: 11)
+2025-10-22 10:25:51,284 - INFO - Proceso 'apa' actualizado exitosamente (ID: 11, Versión: 3)
+2025-10-22 10:33:49,979 - INFO - Insertando nuevo proceso: TETRANUTRA
+2025-10-22 10:33:49,985 - ERROR - Error sincronizando proceso 'TETRANUTRA' a SQL Server: No results.  Previous SQL was not a query.
+Traceback (most recent call last):
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 98, in inner
+    return func(*args, **kwargs)
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\mssql\base.py", line 714, in fetchone
+    row = self.cursor.fetchone()
+pyodbc.ProgrammingError: No results.  Previous SQL was not a query.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\automatizacion\process_sync.py", line 212, in sync_process_to_sqlserver
+    proceso_id = cursor.fetchone()[0]
+                 ~~~~~~~~~~~~~~~^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 97, in inner
+    with self:
+         ^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 98, in inner
+    return func(*args, **kwargs)
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\mssql\base.py", line 714, in fetchone
+    row = self.cursor.fetchone()
+django.db.utils.ProgrammingError: No results.  Previous SQL was not a query.
+2025-10-22 10:33:52,130 - INFO - Actualizando proceso existente: TETRANUTRA (ID: 12)
+2025-10-22 10:33:52,137 - INFO - Proceso 'TETRANUTRA' actualizado exitosamente (ID: 12, Versión: 2)
+2025-10-22 10:33:52,141 - INFO - Campo UltimaEjecucion actualizado para 'TETRANUTRA'
+2025-10-22 10:33:52,161 - INFO - ================================================================================
+2025-10-22 10:33:52,162 - INFO - INICIANDO PROCESAMIENTO EXCEL MULTIHOJA
+2025-10-22 10:33:52,162 - INFO - Proceso: TETRANUTRA
+2025-10-22 10:33:52,162 - INFO - Archivo: C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\temp_files\hoja prueba estadarizacion de datus (1)_GwSN3q2.xlsx
+2025-10-22 10:33:52,163 - INFO - ================================================================================
+2025-10-22 10:33:52,163 - INFO - Hojas seleccionadas: ['Hoja 1']
+2025-10-22 10:33:52,164 - INFO - Columnas seleccionadas: {'Hoja 1': ['ID']}
+2025-10-22 10:33:52,305 - INFO - Actualizando proceso existente: TETRANUTRA (ID: 12)
+2025-10-22 10:33:52,312 - INFO - Proceso 'TETRANUTRA' actualizado exitosamente (ID: 12, Versión: 3)
+2025-10-22 14:12:48,189 - INFO - C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\automatizacion\sql_utils.py changed, reloading.
+2025-10-22 14:31:38,293 - INFO - ================================================================================
+2025-10-22 14:31:38,294 - INFO - INICIANDO PROCESAMIENTO EXCEL MULTIHOJA
+2025-10-22 14:31:38,294 - INFO - Proceso: adf
+2025-10-22 14:31:38,295 - INFO - Archivo: C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\temp_files\hoja prueba estadarizacion de datus (1)_CxETTIn.xlsx
+2025-10-22 14:31:38,295 - INFO - ================================================================================
+2025-10-22 14:31:38,295 - INFO - Hojas seleccionadas: ['Hoja 1']
+2025-10-22 14:31:38,296 - INFO - Columnas seleccionadas: {'Hoja 1': ['ID']}
+2025-10-22 14:31:38,603 - INFO - Actualizando proceso existente: adf (ID: 15)
+2025-10-22 14:31:38,609 - INFO - Proceso 'adf' actualizado exitosamente (ID: 15, Versión: 3)
+2025-10-22 14:33:38,638 - INFO - Insertando nuevo proceso: adferfg
+2025-10-22 14:33:38,644 - ERROR - Error sincronizando proceso 'adferfg' a SQL Server: No results.  Previous SQL was not a query.
+Traceback (most recent call last):
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 98, in inner
+    return func(*args, **kwargs)
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\mssql\base.py", line 714, in fetchone
+    row = self.cursor.fetchone()
+pyodbc.ProgrammingError: No results.  Previous SQL was not a query.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\automatizacion\process_sync.py", line 212, in sync_process_to_sqlserver
+    proceso_id = cursor.fetchone()[0]
+                 ~~~~~~~~~~~~~~~^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 97, in inner
+    with self:
+         ^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 98, in inner
+    return func(*args, **kwargs)
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\mssql\base.py", line 714, in fetchone
+    row = self.cursor.fetchone()
+django.db.utils.ProgrammingError: No results.  Previous SQL was not a query.
+2025-10-22 14:33:39,773 - INFO - Actualizando proceso existente: adferfg (ID: 16)
+2025-10-22 14:33:39,779 - INFO - Proceso 'adferfg' actualizado exitosamente (ID: 16, Versión: 2)
+2025-10-22 14:33:39,784 - INFO - Campo UltimaEjecucion actualizado para 'adferfg'
+2025-10-22 14:33:39,807 - INFO - ================================================================================
+2025-10-22 14:33:39,808 - INFO - INICIANDO PROCESAMIENTO EXCEL MULTIHOJA
+2025-10-22 14:33:39,808 - INFO - Proceso: adferfg
+2025-10-22 14:33:39,808 - INFO - Archivo: C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\temp_files\hoja prueba estadarizacion de datus (1)_CxETTIn.xlsx
+2025-10-22 14:33:39,809 - INFO - ================================================================================
+2025-10-22 14:33:39,809 - INFO - Hojas seleccionadas: ['Hoja 1', 'hoja 2']
+2025-10-22 14:33:39,810 - INFO - Columnas seleccionadas: {'Hoja 1': ['ID', 'nombre'], 'hoja 2': ['fecha', 'codigo', 'cantidad', 'precio']}
+2025-10-22 14:33:40,056 - INFO - Actualizando proceso existente: adferfg (ID: 16)
+2025-10-22 14:33:40,062 - INFO - Proceso 'adferfg' actualizado exitosamente (ID: 16, Versión: 3)
+2025-10-22 14:35:33,644 - INFO - Insertando nuevo proceso: adferfgr
+2025-10-22 14:35:33,650 - ERROR - Error sincronizando proceso 'adferfgr' a SQL Server: No results.  Previous SQL was not a query.
+Traceback (most recent call last):
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 98, in inner
+    return func(*args, **kwargs)
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\mssql\base.py", line 714, in fetchone
+    row = self.cursor.fetchone()
+pyodbc.ProgrammingError: No results.  Previous SQL was not a query.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\automatizacion\process_sync.py", line 212, in sync_process_to_sqlserver
+    proceso_id = cursor.fetchone()[0]
+                 ~~~~~~~~~~~~~~~^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 97, in inner
+    with self:
+         ^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 98, in inner
+    return func(*args, **kwargs)
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\mssql\base.py", line 714, in fetchone
+    row = self.cursor.fetchone()
+django.db.utils.ProgrammingError: No results.  Previous SQL was not a query.
+2025-10-22 14:41:40,962 - INFO - Insertando nuevo proceso: so
+2025-10-22 14:41:40,970 - ERROR - Error sincronizando proceso 'so' a SQL Server: No results.  Previous SQL was not a query.
+Traceback (most recent call last):
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 98, in inner
+    return func(*args, **kwargs)
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\mssql\base.py", line 714, in fetchone
+    row = self.cursor.fetchone()
+pyodbc.ProgrammingError: No results.  Previous SQL was not a query.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\automatizacion\process_sync.py", line 212, in sync_process_to_sqlserver
+    proceso_id = cursor.fetchone()[0]
+                 ~~~~~~~~~~~~~~~^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 97, in inner
+    with self:
+         ^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 98, in inner
+    return func(*args, **kwargs)
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\mssql\base.py", line 714, in fetchone
+    row = self.cursor.fetchone()
+django.db.utils.ProgrammingError: No results.  Previous SQL was not a query.
+2025-10-22 14:44:50,146 - WARNING - Not Found: /favicon.ico
+2025-10-22 14:48:18,309 - WARNING - Not Found: /favicon.ico
+2025-10-22 14:52:25,569 - INFO - Insertando nuevo proceso: MIGARCION66
+2025-10-22 14:52:25,575 - ERROR - Error sincronizando proceso 'MIGARCION66' a SQL Server: No results.  Previous SQL was not a query.
+Traceback (most recent call last):
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 98, in inner
+    return func(*args, **kwargs)
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\mssql\base.py", line 714, in fetchone
+    row = self.cursor.fetchone()
+pyodbc.ProgrammingError: No results.  Previous SQL was not a query.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\automatizacion\process_sync.py", line 212, in sync_process_to_sqlserver
+    proceso_id = cursor.fetchone()[0]
+                 ~~~~~~~~~~~~~~~^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 97, in inner
+    with self:
+         ^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 98, in inner
+    return func(*args, **kwargs)
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\mssql\base.py", line 714, in fetchone
+    row = self.cursor.fetchone()
+django.db.utils.ProgrammingError: No results.  Previous SQL was not a query.
+2025-10-22 14:52:35,587 - INFO - Actualizando proceso existente: MIGARCION66 (ID: 19)
+2025-10-22 14:52:35,596 - INFO - Proceso 'MIGARCION66' actualizado exitosamente (ID: 19, Versión: 2)
+2025-10-22 14:52:35,601 - INFO - Campo UltimaEjecucion actualizado para 'MIGARCION66'
+2025-10-22 14:52:35,788 - INFO - Actualizando proceso existente: MIGARCION66 (ID: 19)
+2025-10-22 14:52:35,796 - INFO - Proceso 'MIGARCION66' actualizado exitosamente (ID: 19, Versión: 3)
+2025-10-22 15:50:36,755 - INFO - Insertando nuevo proceso: proceos_222
+2025-10-22 15:50:36,763 - ERROR - Error sincronizando proceso 'proceos 222' a SQL Server: No results.  Previous SQL was not a query.
+Traceback (most recent call last):
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 98, in inner
+    return func(*args, **kwargs)
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\mssql\base.py", line 714, in fetchone
+    row = self.cursor.fetchone()
+pyodbc.ProgrammingError: No results.  Previous SQL was not a query.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\automatizacion\process_sync.py", line 212, in sync_process_to_sqlserver
+    proceso_id = cursor.fetchone()[0]
+                 ~~~~~~~~~~~~~~~^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 97, in inner
+    with self:
+         ^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 98, in inner
+    return func(*args, **kwargs)
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\mssql\base.py", line 714, in fetchone
+    row = self.cursor.fetchone()
+django.db.utils.ProgrammingError: No results.  Previous SQL was not a query.
+2025-10-22 15:50:41,655 - INFO - Actualizando proceso existente: proceos_222 (ID: 20)
+2025-10-22 15:50:41,664 - INFO - Proceso 'proceos_222' actualizado exitosamente (ID: 20, Versión: 2)
+2025-10-22 15:50:41,668 - INFO - Campo UltimaEjecucion actualizado para 'proceos_222'
+2025-10-22 15:50:41,691 - INFO - ================================================================================
+2025-10-22 15:50:41,691 - INFO - INICIANDO PROCESAMIENTO EXCEL MULTIHOJA
+2025-10-22 15:50:41,692 - INFO - Proceso: proceos 222
+2025-10-22 15:50:41,692 - INFO - Archivo: C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\temp_files\hoja prueba estadarizacion de datus (1)_cFcsDgD.xlsx
+2025-10-22 15:50:41,693 - INFO - ================================================================================
+2025-10-22 15:50:41,693 - INFO - Hojas seleccionadas: ['Hoja 1']
+2025-10-22 15:50:41,694 - INFO - Columnas seleccionadas: {'Hoja 1': ['ID']}
+2025-10-22 15:50:41,854 - INFO - Actualizando proceso existente: proceos_222 (ID: 20)
+2025-10-22 15:50:41,862 - INFO - Proceso 'proceos_222' actualizado exitosamente (ID: 20, Versión: 3)
+2025-10-22 15:52:14,059 - INFO - Insertando nuevo proceso: proceso33333
+2025-10-22 15:52:14,068 - ERROR - Error sincronizando proceso 'proceso33333' a SQL Server: No results.  Previous SQL was not a query.
+Traceback (most recent call last):
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 98, in inner
+    return func(*args, **kwargs)
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\mssql\base.py", line 714, in fetchone
+    row = self.cursor.fetchone()
+pyodbc.ProgrammingError: No results.  Previous SQL was not a query.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\automatizacion\process_sync.py", line 212, in sync_process_to_sqlserver
+    proceso_id = cursor.fetchone()[0]
+                 ~~~~~~~~~~~~~~~^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 97, in inner
+    with self:
+         ^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 98, in inner
+    return func(*args, **kwargs)
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\mssql\base.py", line 714, in fetchone
+    row = self.cursor.fetchone()
+django.db.utils.ProgrammingError: No results.  Previous SQL was not a query.
+2025-10-22 15:52:16,967 - INFO - Actualizando proceso existente: proceso33333 (ID: 21)
+2025-10-22 15:52:16,973 - INFO - Proceso 'proceso33333' actualizado exitosamente (ID: 21, Versión: 2)
+2025-10-22 15:52:16,977 - INFO - Campo UltimaEjecucion actualizado para 'proceso33333'
+2025-10-22 15:52:17,001 - INFO - ================================================================================
+2025-10-22 15:52:17,001 - INFO - INICIANDO PROCESAMIENTO EXCEL MULTIHOJA
+2025-10-22 15:52:17,001 - INFO - Proceso: proceso33333
+2025-10-22 15:52:17,002 - INFO - Archivo: C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\temp_files\hoja prueba estadarizacion de datus (1)_v6Z6mac.xlsx
+2025-10-22 15:52:17,002 - INFO - ================================================================================
+2025-10-22 15:52:17,003 - INFO - Hojas seleccionadas: ['Hoja 1']
+2025-10-22 15:52:17,003 - INFO - Columnas seleccionadas: {'Hoja 1': ['ID', 'nombre', 'edad', 'genero']}
+2025-10-22 15:52:17,189 - INFO - Actualizando proceso existente: proceso33333 (ID: 21)
+2025-10-22 15:52:17,195 - INFO - Proceso 'proceso33333' actualizado exitosamente (ID: 21, Versión: 3)
+2025-10-22 15:54:24,668 - INFO - Insertando nuevo proceso: proceso3333344
+2025-10-22 15:54:24,674 - ERROR - Error sincronizando proceso 'proceso3333344' a SQL Server: No results.  Previous SQL was not a query.
+Traceback (most recent call last):
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 98, in inner
+    return func(*args, **kwargs)
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\mssql\base.py", line 714, in fetchone
+    row = self.cursor.fetchone()
+pyodbc.ProgrammingError: No results.  Previous SQL was not a query.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\automatizacion\process_sync.py", line 212, in sync_process_to_sqlserver
+    proceso_id = cursor.fetchone()[0]
+                 ~~~~~~~~~~~~~~~^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 97, in inner
+    with self:
+         ^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 98, in inner
+    return func(*args, **kwargs)
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\mssql\base.py", line 714, in fetchone
+    row = self.cursor.fetchone()
+django.db.utils.ProgrammingError: No results.  Previous SQL was not a query.
+2025-10-22 15:54:56,039 - INFO - Insertando nuevo proceso: proceso33333444
+2025-10-22 15:54:56,045 - ERROR - Error sincronizando proceso 'proceso33333444' a SQL Server: No results.  Previous SQL was not a query.
+Traceback (most recent call last):
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 98, in inner
+    return func(*args, **kwargs)
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\mssql\base.py", line 714, in fetchone
+    row = self.cursor.fetchone()
+pyodbc.ProgrammingError: No results.  Previous SQL was not a query.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\automatizacion\process_sync.py", line 212, in sync_process_to_sqlserver
+    proceso_id = cursor.fetchone()[0]
+                 ~~~~~~~~~~~~~~~^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 97, in inner
+    with self:
+         ^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 98, in inner
+    return func(*args, **kwargs)
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\mssql\base.py", line 714, in fetchone
+    row = self.cursor.fetchone()
+django.db.utils.ProgrammingError: No results.  Previous SQL was not a query.
+2025-10-22 16:10:24,491 - INFO - Insertando nuevo proceso: proceso333334447373737
+2025-10-22 16:10:24,494 - ERROR - Error sincronizando proceso 'proceso333334447373737' a SQL Server: No results.  Previous SQL was not a query.
+Traceback (most recent call last):
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 98, in inner
+    return func(*args, **kwargs)
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\mssql\base.py", line 714, in fetchone
+    row = self.cursor.fetchone()
+pyodbc.ProgrammingError: No results.  Previous SQL was not a query.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\automatizacion\process_sync.py", line 212, in sync_process_to_sqlserver
+    proceso_id = cursor.fetchone()[0]
+                 ~~~~~~~~~~~~~~~^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 97, in inner
+    with self:
+         ^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 98, in inner
+    return func(*args, **kwargs)
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\mssql\base.py", line 714, in fetchone
+    row = self.cursor.fetchone()
+django.db.utils.ProgrammingError: No results.  Previous SQL was not a query.
+2025-10-22 16:10:26,873 - INFO - Actualizando proceso existente: proceso333334447373737 (ID: 24)
+2025-10-22 16:10:26,877 - INFO - Proceso 'proceso333334447373737' actualizado exitosamente (ID: 24, Versión: 2)
+2025-10-22 16:10:26,879 - INFO - Campo UltimaEjecucion actualizado para 'proceso333334447373737'
+2025-10-22 16:10:26,887 - INFO - ================================================================================
+2025-10-22 16:10:26,888 - INFO - INICIANDO PROCESAMIENTO EXCEL MULTIHOJA
+2025-10-22 16:10:26,888 - INFO - Proceso: proceso333334447373737
+2025-10-22 16:10:26,888 - INFO - Archivo: C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\temp_files\hoja prueba estadarizacion de datus (1)_v6Z6mac.xlsx
+2025-10-22 16:10:26,888 - INFO - ================================================================================
+2025-10-22 16:10:26,888 - INFO - Hojas seleccionadas: ['Hoja 1']
+2025-10-22 16:10:26,888 - INFO - Columnas seleccionadas: {'Hoja 1': ['ID', 'nombre', 'edad', 'genero']}
+2025-10-22 16:10:26,961 - INFO - Actualizando proceso existente: proceso333334447373737 (ID: 24)
+2025-10-22 16:10:26,964 - INFO - Proceso 'proceso333334447373737' actualizado exitosamente (ID: 24, Versión: 3)
+2025-10-22 16:14:26,176 - INFO - Insertando nuevo proceso: prueba66432
+2025-10-22 16:14:26,179 - ERROR - Error sincronizando proceso 'prueba66432' a SQL Server: No results.  Previous SQL was not a query.
+Traceback (most recent call last):
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 98, in inner
+    return func(*args, **kwargs)
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\mssql\base.py", line 714, in fetchone
+    row = self.cursor.fetchone()
+pyodbc.ProgrammingError: No results.  Previous SQL was not a query.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\automatizacion\process_sync.py", line 212, in sync_process_to_sqlserver
+    proceso_id = cursor.fetchone()[0]
+                 ~~~~~~~~~~~~~~~^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 97, in inner
+    with self:
+         ^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 98, in inner
+    return func(*args, **kwargs)
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\mssql\base.py", line 714, in fetchone
+    row = self.cursor.fetchone()
+django.db.utils.ProgrammingError: No results.  Previous SQL was not a query.
+2025-10-22 16:14:27,282 - INFO - Actualizando proceso existente: prueba66432 (ID: 25)
+2025-10-22 16:14:27,286 - INFO - Proceso 'prueba66432' actualizado exitosamente (ID: 25, Versión: 2)
+2025-10-22 16:14:27,288 - INFO - Campo UltimaEjecucion actualizado para 'prueba66432'
+2025-10-22 16:14:27,297 - INFO - ================================================================================
+2025-10-22 16:14:27,298 - INFO - INICIANDO PROCESAMIENTO EXCEL MULTIHOJA
+2025-10-22 16:14:27,298 - INFO - Proceso: prueba66432
+2025-10-22 16:14:27,298 - INFO - Archivo: C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\temp_files\hoja prueba estadarizacion de datus (1)_CIfCpHT.xlsx
+2025-10-22 16:14:27,298 - INFO - ================================================================================
+2025-10-22 16:14:27,298 - INFO - Hojas seleccionadas: ['Hoja 1']
+2025-10-22 16:14:27,298 - INFO - Columnas seleccionadas: {'Hoja 1': ['ID']}
+2025-10-22 16:14:27,378 - INFO - Actualizando proceso existente: prueba66432 (ID: 25)
+2025-10-22 16:14:27,382 - INFO - Proceso 'prueba66432' actualizado exitosamente (ID: 25, Versión: 3)
+2025-10-28 13:41:15,165 - INFO - ================================================================================
+2025-10-28 13:41:15,165 - INFO - INICIANDO PROCESAMIENTO EXCEL MULTIHOJA
+2025-10-28 13:41:15,165 - INFO - Proceso: dfgfd
+2025-10-28 13:41:15,165 - INFO - Archivo: C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\temp_files\hoja prueba estadarizacion de datus (1)_dQ3ZH2D.xlsx
+2025-10-28 13:41:15,165 - INFO - ================================================================================
+2025-10-28 13:41:15,166 - INFO - Hojas seleccionadas: ['Hoja 1']
+2025-10-28 13:41:15,166 - INFO - Columnas seleccionadas: {'Hoja 1': ['ID']}
+2025-10-28 13:41:15,288 - INFO - Actualizando proceso existente: dfgfd (ID: 1020)
+2025-10-28 13:41:15,292 - INFO - Proceso 'dfgfd' actualizado exitosamente (ID: 1020, Versión: 3)
+2025-10-28 14:22:37,165 - INFO - C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\automatizacion\urls.py changed, reloading.
+2025-10-31 08:30:03,268 - INFO - ================================================================================
+2025-10-31 08:30:03,269 - INFO - INICIANDO PROCESAMIENTO EXCEL MULTIHOJA
+2025-10-31 08:30:03,270 - INFO - Proceso: si jaja
+2025-10-31 08:30:03,270 - INFO - Archivo: C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\temp_files\hoja prueba estadarizacion de datus (1)_fEIcyBZ.xlsx
+2025-10-31 08:30:03,270 - INFO - ================================================================================
+2025-10-31 08:30:03,271 - INFO - Hojas seleccionadas: ['Hoja 1']
+2025-10-31 08:30:03,271 - INFO - Columnas seleccionadas: {'Hoja 1': ['ID', 'nombre', 'edad', 'genero']}
+2025-10-31 08:30:03,494 - WARNING - No se pudo convertir '2.0' a BIT, usando default
+2025-10-31 08:30:03,497 - WARNING - No se pudo convertir 'M' a DATE, usando default
+2025-10-31 08:30:03,498 - WARNING - No se pudo convertir 'M' a DATE, usando default
+2025-10-31 08:30:03,608 - INFO - Actualizando proceso existente: si_jaja (ID: 1021)
+2025-10-31 08:30:03,615 - INFO - Proceso 'si_jaja' actualizado exitosamente (ID: 1021, Versión: 3)
+2025-10-31 08:30:24,294 - INFO - Actualizando proceso existente: si_jaja (ID: 1021)
+2025-10-31 08:30:24,296 - INFO - Proceso 'si_jaja' actualizado exitosamente (ID: 1021, Versión: 4)
+2025-10-31 08:30:24,298 - INFO - Campo UltimaEjecucion actualizado para 'si_jaja'
+2025-10-31 08:30:24,319 - INFO - ================================================================================
+2025-10-31 08:30:24,320 - INFO - INICIANDO PROCESAMIENTO EXCEL MULTIHOJA
+2025-10-31 08:30:24,321 - INFO - Proceso: si jaja
+2025-10-31 08:30:24,322 - INFO - Archivo: C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\temp_files\hoja prueba estadarizacion de datus (1)_fEIcyBZ.xlsx
+2025-10-31 08:30:24,324 - INFO - ================================================================================
+2025-10-31 08:30:24,324 - INFO - Hojas seleccionadas: ['Hoja 1']
+2025-10-31 08:30:24,325 - INFO - Columnas seleccionadas: {'Hoja 1': ['ID', 'nombre', 'edad', 'genero']}
+2025-10-31 08:30:24,408 - WARNING - No se pudo convertir '2.0' a BIT, usando default
+2025-10-31 08:30:24,411 - WARNING - No se pudo convertir 'M' a DATE, usando default
+2025-10-31 08:30:24,412 - WARNING - No se pudo convertir 'M' a DATE, usando default
+2025-10-31 08:30:24,483 - INFO - Actualizando proceso existente: si_jaja (ID: 1021)
+2025-10-31 08:30:24,485 - INFO - Proceso 'si_jaja' actualizado exitosamente (ID: 1021, Versión: 5)
+2025-10-31 08:31:52,752 - INFO - Actualizando proceso existente: si_jaja (ID: 1021)
+2025-10-31 08:31:52,758 - INFO - Proceso 'si_jaja' actualizado exitosamente (ID: 1021, Versión: 6)
+2025-10-31 08:31:52,763 - INFO - Campo UltimaEjecucion actualizado para 'si_jaja'
+2025-10-31 08:31:52,889 - INFO - ================================================================================
+2025-10-31 08:31:52,890 - INFO - INICIANDO PROCESAMIENTO EXCEL MULTIHOJA
+2025-10-31 08:31:52,890 - INFO - Proceso: si jaja
+2025-10-31 08:31:52,891 - INFO - Archivo: C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\temp_files\hoja prueba estadarizacion de datus (1)_fEIcyBZ.xlsx
+2025-10-31 08:31:52,891 - INFO - ================================================================================
+2025-10-31 08:31:52,892 - INFO - Hojas seleccionadas: ['Hoja 1']
+2025-10-31 08:31:52,892 - INFO - Columnas seleccionadas: {'Hoja 1': ['ID', 'nombre', 'edad', 'genero']}
+2025-10-31 08:31:52,994 - WARNING - No se pudo convertir '2.0' a BIT, usando default
+2025-10-31 08:31:52,997 - WARNING - No se pudo convertir 'M' a DATE, usando default
+2025-10-31 08:31:52,997 - WARNING - No se pudo convertir 'M' a DATE, usando default
+2025-10-31 08:31:53,078 - INFO - Actualizando proceso existente: si_jaja (ID: 1021)
+2025-10-31 08:31:53,085 - INFO - Proceso 'si_jaja' actualizado exitosamente (ID: 1021, Versión: 7)
+2025-10-31 08:32:11,724 - INFO - Procesando archivo Excel: hoja prueba estadarizacion de datus (1).xlsx
+2025-10-31 08:32:11,724 - INFO - Hojas encontradas: 2 - ['Hoja 1', 'hoja 2']
+2025-10-31 08:32:11,797 - INFO - Hoja 'Hoja 1': 4 columnas, 2 filas, nombre sugerido: 'hoja_1'
+2025-10-31 08:32:11,877 - INFO - Hoja 'hoja 2': 7 columnas, 3 filas, nombre sugerido: 'hoja_2'
+2025-10-31 08:33:22,949 - INFO - Insertando nuevo proceso: jajda
+2025-10-31 08:33:22,959 - ERROR - Error sincronizando proceso 'jajda' a SQL Server: No results.  Previous SQL was not a query.
+Traceback (most recent call last):
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 98, in inner
+    return func(*args, **kwargs)
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\mssql\base.py", line 714, in fetchone
+    row = self.cursor.fetchone()
+pyodbc.ProgrammingError: No results.  Previous SQL was not a query.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\automatizacion\process_sync.py", line 212, in sync_process_to_sqlserver
+    proceso_id = cursor.fetchone()[0]
+                 ~~~~~~~~~~~~~~~^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 97, in inner
+    with self:
+         ^^^^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 98, in inner
+    return func(*args, **kwargs)
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\mssql\base.py", line 714, in fetchone
+    row = self.cursor.fetchone()
+django.db.utils.ProgrammingError: No results.  Previous SQL was not a query.
+2025-10-31 08:33:25,718 - INFO - Actualizando proceso existente: jajda (ID: 1022)
+2025-10-31 08:33:25,729 - INFO - Proceso 'jajda' actualizado exitosamente (ID: 1022, Versión: 2)
+2025-10-31 08:33:25,735 - INFO - Campo UltimaEjecucion actualizado para 'jajda'
+2025-10-31 08:33:25,758 - INFO - ================================================================================
+2025-10-31 08:33:25,758 - INFO - INICIANDO PROCESAMIENTO EXCEL MULTIHOJA
+2025-10-31 08:33:25,758 - INFO - Proceso: jajda
+2025-10-31 08:33:25,759 - INFO - Archivo: C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\temp_files\hoja prueba estadarizacion de datus (1)_ktgIEXe.xlsx
+2025-10-31 08:33:25,759 - INFO - ================================================================================
+2025-10-31 08:33:25,760 - INFO - Hojas seleccionadas: ['Hoja 1']
+2025-10-31 08:33:25,760 - INFO - Columnas seleccionadas: {'Hoja 1': ['ID', 'nombre', 'edad', 'genero']}
+2025-10-31 08:33:25,872 - WARNING - No se pudo convertir 'M' a DATE, usando default
+2025-10-31 08:33:25,873 - WARNING - No se pudo convertir 'M' a DATE, usando default
+2025-10-31 08:33:25,958 - INFO - Actualizando proceso existente: jajda (ID: 1022)
+2025-10-31 08:33:25,965 - INFO - Proceso 'jajda' actualizado exitosamente (ID: 1022, Versión: 3)
+2025-10-31 08:35:50,095 - INFO - C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\automatizacion\models.py changed, reloading.
+2025-10-31 08:37:56,604 - INFO - ================================================================================
+2025-10-31 08:37:56,605 - INFO - INICIANDO PROCESAMIENTO EXCEL MULTIHOJA
+2025-10-31 08:37:56,605 - INFO - Proceso: jajda
+2025-10-31 08:37:56,606 - INFO - Archivo: C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\temp_files\hoja prueba estadarizacion de datus (1)_ktgIEXe.xlsx
+2025-10-31 08:37:56,606 - INFO - ================================================================================
+2025-10-31 08:37:56,606 - INFO - Hojas seleccionadas: ['Hoja 1']
+2025-10-31 08:37:56,607 - INFO - Columnas seleccionadas: {'Hoja 1': ['ID', 'nombre', 'edad', 'genero']}
+2025-10-31 08:37:57,970 - WARNING - No se pudo convertir 'M' a DATE, usando default
+2025-10-31 08:37:57,971 - WARNING - No se pudo convertir 'M' a DATE, usando default
+2025-10-31 08:37:58,070 - INFO - Actualizando proceso existente: jajda (ID: 1022)
+2025-10-31 08:37:58,077 - INFO - Proceso 'jajda' actualizado exitosamente (ID: 1022, Versión: 5)
+2025-10-31 08:38:46,585 - INFO - Actualizando proceso existente: jajda (ID: 1022)
+2025-10-31 08:38:46,591 - INFO - Proceso 'jajda' actualizado exitosamente (ID: 1022, Versión: 6)
+2025-10-31 08:38:46,596 - INFO - Campo UltimaEjecucion actualizado para 'jajda'
+2025-10-31 08:38:46,627 - INFO - ================================================================================
+2025-10-31 08:38:46,627 - INFO - INICIANDO PROCESAMIENTO EXCEL MULTIHOJA
+2025-10-31 08:38:46,628 - INFO - Proceso: jajda
+2025-10-31 08:38:46,628 - INFO - Archivo: C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\temp_files\hoja prueba estadarizacion de datus (1)_ktgIEXe.xlsx
+2025-10-31 08:38:46,629 - INFO - ================================================================================
+2025-10-31 08:38:46,629 - INFO - Hojas seleccionadas: ['Hoja 1']
+2025-10-31 08:38:46,629 - INFO - Columnas seleccionadas: {'Hoja 1': ['ID', 'nombre', 'edad', 'genero']}
+2025-10-31 08:38:46,720 - WARNING - No se pudo convertir 'M' a DATE, usando default
+2025-10-31 08:38:46,720 - WARNING - No se pudo convertir 'M' a DATE, usando default
+2025-10-31 08:38:46,817 - INFO - Actualizando proceso existente: jajda (ID: 1022)
+2025-10-31 08:38:46,825 - INFO - Proceso 'jajda' actualizado exitosamente (ID: 1022, Versión: 7)
+2025-10-31 08:58:45,299 - INFO - ================================================================================
+2025-10-31 08:58:45,299 - INFO - INICIANDO PROCESAMIENTO EXCEL MULTIHOJA
+2025-10-31 08:58:45,300 - INFO - Proceso: Proceso desde Frontend 20250924_145357
+2025-10-31 08:58:45,300 - INFO - Archivo: /tmp/test.xlsx
+2025-10-31 08:58:45,300 - INFO - ================================================================================
+2025-10-31 08:58:45,301 - INFO - Hojas seleccionadas: ['Hoja1', 'Hoja2']
+2025-10-31 08:58:45,301 - INFO - Columnas seleccionadas: None
+2025-10-31 08:58:45,484 - ERROR - Traceback (most recent call last):
+  File "C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\automatizacion\models.py", line 842, in _process_excel_sheets_individually
+    df = pd.read_excel(self.source.file_path, sheet_name=sheet_name)
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\io\excel\_base.py", line 495, in read_excel
+    io = ExcelFile(
+        io,
+    ...<2 lines>...
+        engine_kwargs=engine_kwargs,
+    )
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\io\excel\_base.py", line 1550, in __init__
+    ext = inspect_excel_format(
+        content_or_path=path_or_buffer, storage_options=storage_options
+    )
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\io\excel\_base.py", line 1402, in inspect_excel_format
+    with get_handle(
+         ~~~~~~~~~~^
+        content_or_path, "rb", storage_options=storage_options, is_text=False
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ) as handle:
+    ^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\io\common.py", line 882, in get_handle
+    handle = open(handle, ioargs.mode)
+FileNotFoundError: [Errno 2] No such file or directory: '/tmp/test.xlsx'
+
+2025-10-31 08:58:45,564 - ERROR - Traceback (most recent call last):
+  File "C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\automatizacion\models.py", line 842, in _process_excel_sheets_individually
+    df = pd.read_excel(self.source.file_path, sheet_name=sheet_name)
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\io\excel\_base.py", line 495, in read_excel
+    io = ExcelFile(
+        io,
+    ...<2 lines>...
+        engine_kwargs=engine_kwargs,
+    )
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\io\excel\_base.py", line 1550, in __init__
+    ext = inspect_excel_format(
+        content_or_path=path_or_buffer, storage_options=storage_options
+    )
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\io\excel\_base.py", line 1402, in inspect_excel_format
+    with get_handle(
+         ~~~~~~~~~~^
+        content_or_path, "rb", storage_options=storage_options, is_text=False
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ) as handle:
+    ^
+  File "C:\Users\migue\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\io\common.py", line 882, in get_handle
+    handle = open(handle, ioargs.mode)
+FileNotFoundError: [Errno 2] No such file or directory: '/tmp/test.xlsx'
+
+2025-10-31 08:58:45,682 - INFO - Actualizando proceso existente: Proceso_desde_Frontend_20250924_145357 (ID: 1023)
+2025-10-31 08:58:45,690 - INFO - Proceso 'Proceso_desde_Frontend_20250924_145357' actualizado exitosamente (ID: 1023, Versión: 2)
+2025-10-31 08:59:09,513 - INFO - ================================================================================
+2025-10-31 08:59:09,514 - INFO - INICIANDO PROCESAMIENTO EXCEL MULTIHOJA
+2025-10-31 08:59:09,514 - INFO - Proceso: jajda
+2025-10-31 08:59:09,514 - INFO - Archivo: C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\temp_files\hoja prueba estadarizacion de datus (1)_ktgIEXe.xlsx
+2025-10-31 08:59:09,515 - INFO - ================================================================================
+2025-10-31 08:59:09,515 - INFO - Hojas seleccionadas: ['Hoja 1']
+2025-10-31 08:59:09,516 - INFO - Columnas seleccionadas: {'Hoja 1': ['ID', 'nombre', 'edad', 'genero']}
+2025-10-31 08:59:10,303 - WARNING - No se pudo convertir 'M' a DATE, usando default
+2025-10-31 08:59:10,304 - WARNING - No se pudo convertir 'M' a DATE, usando default
+2025-10-31 08:59:10,409 - INFO - Actualizando proceso existente: jajda (ID: 1022)
+2025-10-31 08:59:10,415 - INFO - Proceso 'jajda' actualizado exitosamente (ID: 1022, Versión: 9)
+2025-10-31 09:01:11,659 - INFO - Actualizando proceso existente: jajda (ID: 1022)
+2025-10-31 09:01:11,666 - INFO - Proceso 'jajda' actualizado exitosamente (ID: 1022, Versión: 10)
+2025-10-31 09:01:11,670 - INFO - Campo UltimaEjecucion actualizado para 'jajda'
+2025-10-31 09:01:11,788 - INFO - ================================================================================
+2025-10-31 09:01:11,789 - INFO - INICIANDO PROCESAMIENTO EXCEL MULTIHOJA
+2025-10-31 09:01:11,789 - INFO - Proceso: jajda
+2025-10-31 09:01:11,789 - INFO - Archivo: C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\temp_files\hoja prueba estadarizacion de datus (1)_ktgIEXe.xlsx
+2025-10-31 09:01:11,790 - INFO - ================================================================================
+2025-10-31 09:01:11,790 - INFO - Hojas seleccionadas: ['Hoja 1']
+2025-10-31 09:01:11,791 - INFO - Columnas seleccionadas: {'Hoja 1': ['ID', 'nombre', 'edad', 'genero']}
+2025-10-31 09:01:11,877 - WARNING - No se pudo convertir 'M' a DATE, usando default
+2025-10-31 09:01:11,878 - WARNING - No se pudo convertir 'M' a DATE, usando default
+2025-10-31 09:01:11,972 - INFO - Actualizando proceso existente: jajda (ID: 1022)
+2025-10-31 09:01:11,979 - INFO - Proceso 'jajda' actualizado exitosamente (ID: 1022, Versión: 11)
+2025-10-31 09:03:11,873 - INFO - Procesando archivo Excel: hoja prueba estadarizacion de datus (1).xlsx
+2025-10-31 09:03:11,874 - INFO - Hojas encontradas: 2 - ['Hoja 1', 'hoja 2']
+2025-10-31 09:03:11,972 - INFO - Hoja 'Hoja 1': 4 columnas, 2 filas, nombre sugerido: 'hoja_1'
+2025-10-31 09:03:12,064 - INFO - Hoja 'hoja 2': 7 columnas, 3 filas, nombre sugerido: 'hoja_2'
+2025-10-31 09:10:25,353 - INFO - Procesando archivo Excel: hoja prueba estadarizacion de datus (1).xlsx
+2025-10-31 09:10:25,354 - INFO - Hojas encontradas: 2 - ['Hoja 1', 'hoja 2']
+2025-10-31 09:10:25,424 - INFO - Hoja 'Hoja 1': 4 columnas, 2 filas, nombre sugerido: 'hoja_1'
+2025-10-31 09:10:25,519 - INFO - Hoja 'hoja 2': 7 columnas, 3 filas, nombre sugerido: 'hoja_2'
+2025-10-31 09:11:21,135 - INFO - Procesando archivo Excel: hoja prueba estadarizacion de datus (1).xlsx
+2025-10-31 09:11:21,136 - INFO - Hojas encontradas: 2 - ['Hoja 1', 'hoja 2']
+2025-10-31 09:11:21,207 - INFO - Hoja 'Hoja 1': 4 columnas, 2 filas, nombre sugerido: 'hoja_1'
+2025-10-31 09:11:21,289 - INFO - Hoja 'hoja 2': 7 columnas, 3 filas, nombre sugerido: 'hoja_2'
+2025-10-31 09:11:22,087 - WARNING - Not Found: /favicon.ico
+2025-10-31 09:36:28,283 - INFO - C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\automatizacion\utils\validators.py changed, reloading.
+2025-11-10 14:46:22,496 - INFO - ================================================================================
+2025-11-10 14:46:22,496 - INFO - INICIANDO PROCESAMIENTO EXCEL MULTIHOJA
+2025-11-10 14:46:22,496 - INFO - Proceso: miguelito55
+2025-11-10 14:46:22,497 - INFO - Archivo: C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\temp_files\hoja prueba estadarizacion de datus (1)_xTzKYNU.xlsx
+2025-11-10 14:46:22,497 - INFO - ================================================================================
+2025-11-10 14:46:22,497 - INFO - Hojas seleccionadas: ['Hoja 1']
+2025-11-10 14:46:22,497 - INFO - Columnas seleccionadas: {'Hoja 1': ['ID']}
+2025-11-10 14:46:22,668 - INFO - Actualizando proceso existente: miguelito55 (ID: 2023)
+2025-11-10 14:46:22,672 - INFO - Proceso 'miguelito55' actualizado exitosamente (ID: 2023, Versión: 3)
+2025-11-10 14:47:39,293 - INFO - Procesando archivo Excel: hoja prueba estadarizacion de datus (1).xlsx
+2025-11-10 14:47:39,293 - INFO - Hojas encontradas: 2 - ['Hoja 1', 'hoja 2']
+2025-11-10 14:47:39,321 - INFO - Hoja 'Hoja 1': 4 columnas, 2 filas, nombre sugerido: 'hoja_1'
+2025-11-10 14:47:39,349 - INFO - Hoja 'hoja 2': 7 columnas, 3 filas, nombre sugerido: 'hoja_2'
+2025-11-13 07:34:12,404 - INFO - C:\Users\migue\OneDrive\Escritorio\DJANGO DE NUEVO\opav\proyecto_automatizacion\proyecto_automatizacion\settings.py changed, reloading.

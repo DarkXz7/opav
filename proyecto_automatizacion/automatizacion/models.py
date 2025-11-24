@@ -64,6 +64,135 @@ class DataSource(models.Model):
     def __str__(self):
         return f"{self.name} ({self.get_source_type_display()})"
 
+
+class ProcesosGuardados(models.Model):
+    """
+    Modelo espejo (managed=False) que refleja la tabla dbo.ProcesosGuardados en SQL Server.
+    
+    Esta tabla centraliza todos los procesos creados en Django, permitiendo:
+    - Trazabilidad y auditoría desde SQL Server
+    - Consultas directas sin pasar por Django ORM
+    - Sincronización automática con el modelo MigrationProcess
+    
+    ⚠️ IMPORTANTE: 
+    - managed=False significa que Django NO creará/modificará esta tabla
+    - La tabla debe existir previamente en la base DestinoAutomatizacion
+    - Usa el alias 'sqlserver' para todas las operaciones
+    
+    Sincronización: Se actualiza automáticamente cuando se crea/edita/ejecuta
+    un proceso desde el modelo MigrationProcess (ver método save() y run())
+    """
+    
+    # Campo de identidad (auto-incremental en SQL Server)
+    id = models.IntegerField(primary_key=True, db_column='Id')
+    
+    # Información básica del proceso
+    nombre_proceso = models.CharField(
+        max_length=255, 
+        db_column='NombreProceso',
+        help_text="Nombre único del proceso (sin caracteres especiales)"
+    )
+    
+    tipo_fuente = models.CharField(
+        max_length=50, 
+        db_column='TipoFuente',
+        help_text="Tipo de fuente: 'Excel' o 'SQL'"
+    )
+    
+    fuente = models.CharField(
+        max_length=255, 
+        null=True, 
+        blank=True, 
+        db_column='Fuente',
+        help_text="Ruta del archivo Excel o nombre de la conexión SQL"
+    )
+    
+    hoja_tabla = models.CharField(
+        max_length=255, 
+        null=True, 
+        blank=True, 
+        db_column='HojaTabla',
+        help_text="Nombre de la hoja (Excel) o tabla (SQL) procesada"
+    )
+    
+    destino = models.CharField(
+        max_length=255, 
+        null=True, 
+        blank=True, 
+        db_column='Destino',
+        help_text="Base o tabla destino en DestinoAutomatizacion"
+    )
+    
+    estado = models.CharField(
+        max_length=50, 
+        default='Activo', 
+        db_column='Estado',
+        help_text="Estado lógico del proceso: Activo, Inactivo, Eliminado, etc."
+    )
+    
+    # Campos de auditoría
+    fecha_creacion = models.DateTimeField(
+        auto_now_add=True, 
+        db_column='FechaCreacion',
+        help_text="Timestamp de creación del proceso"
+    )
+    
+    fecha_actualizacion = models.DateTimeField(
+        null=True, 
+        blank=True, 
+        db_column='FechaActualizacion',
+        help_text="Timestamp de última modificación del proceso"
+    )
+    
+    usuario_creador = models.CharField(
+        max_length=255, 
+        null=True, 
+        blank=True, 
+        db_column='UsuarioCreador',
+        help_text="Usuario que creó el proceso"
+    )
+    
+    descripcion = models.TextField(
+        null=True, 
+        blank=True, 
+        db_column='Descripcion',
+        help_text="Descripción detallada del proceso"
+    )
+    
+    # Campos de control de ejecución
+    ultima_ejecucion = models.DateTimeField(
+        null=True, 
+        blank=True, 
+        db_column='UltimaEjecucion',
+        help_text="Timestamp de la última vez que se ejecutó el proceso"
+    )
+    
+    version = models.IntegerField(
+        default=1, 
+        db_column='Version',
+        help_text="Versión del proceso (incrementa con cada cambio significativo)"
+    )
+    
+    observaciones = models.TextField(
+        null=True, 
+        blank=True, 
+        db_column='Observaciones',
+        help_text="Notas adicionales, cambios realizados, etc."
+    )
+    
+    class Meta:
+        managed = False  # Django NO gestionará la tabla (no hará migraciones)
+        db_table = 'dbo.ProcesosGuardados'  # Nombre exacto de la tabla en SQL Server
+        app_label = 'automatizacion'
+        verbose_name = 'Proceso Guardado (SQL Server)'
+        verbose_name_plural = 'Procesos Guardados (SQL Server)'
+        # Usar conexión 'sqlserver' para todas las operaciones de este modelo
+        # (se configura en el router o directamente en las consultas)
+    
+    def __str__(self):
+        return f"{self.nombre_proceso} ({self.tipo_fuente})"
+
+
 class MigrationProcess(models.Model):
     """
     Representa un proceso completo de migración guardado
@@ -110,8 +239,55 @@ class MigrationProcess(models.Model):
     allow_rollback = models.BooleanField(default=True)
     last_checkpoint = models.JSONField(null=True, blank=True)  # Para almacenar puntos de restauración
     
+    # 🆕 Campos para sistema de validación y normalización
+    type_configuration = models.JSONField(null=True, blank=True)  # Configuración de tipos SQL inferidos por columna
+    types_inferred_at = models.DateTimeField(null=True, blank=True)  # Timestamp de cuándo se infirieron los tipos
+    
     def __str__(self):
         return self.name
+    
+    def save(self, *args, **kwargs):
+        """
+        Sobrescribe el método save() para sincronizar automáticamente con SQL Server.
+        
+        Cada vez que un proceso se crea o modifica en Django, se refleja también
+        en la tabla dbo.ProcesosGuardados de SQL Server para trazabilidad.
+        
+        ⚠️ Importante: La sincronización ocurre DESPUÉS del save en Django,
+        por lo que si falla la sincronización con SQL Server, el proceso igual
+        quedará guardado en Django (modelo robusto).
+        """
+        # Guardar primero en Django (SQLite)
+        super().save(*args, **kwargs)
+        
+        # Sincronizar con SQL Server (tabla ProcesosGuardados)
+        try:
+            from .process_sync import sync_process_to_sqlserver
+            
+            # Determinar observaciones basadas en si es creación o actualización
+            if self._state.adding:
+                observaciones = f"Proceso creado en Django (ID Django: {self.id})"
+            else:
+                observaciones = f"Proceso actualizado en Django (ID Django: {self.id})"
+            
+            exito, mensaje, proceso_id_sql = sync_process_to_sqlserver(
+                self, 
+                usuario='sistema', 
+                observaciones=observaciones
+            )
+            
+            if exito:
+                print(f"✅ Sincronización SQL Server exitosa: {mensaje}")
+            else:
+                print(f"⚠️ Advertencia: No se pudo sincronizar con SQL Server: {mensaje}")
+                # No lanzamos excepción para no bloquear el save de Django
+                
+        except Exception as e:
+            print(f"⚠️ Error inesperado sincronizando con SQL Server: {str(e)}")
+            # Registrar el error pero no interrumpir el flujo
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Error sincronizando proceso {self.name} con SQL Server", exc_info=True)
     
     def run(self):
         """
@@ -136,6 +312,17 @@ class MigrationProcess(models.Model):
         self.status = 'running'
         self.last_run = timezone.now()
         self.save()
+        
+        # 🔄 SINCRONIZACIÓN SQL SERVER: Actualizar UltimaEjecucion
+        try:
+            from .process_sync import update_ultima_ejecucion
+            exito_sql, msg_sql = update_ultima_ejecucion(self.name, self.last_run)
+            if exito_sql:
+                print(f"✅ UltimaEjecucion actualizada en SQL Server")
+            else:
+                print(f"⚠️ Advertencia: {msg_sql}")
+        except Exception as e:
+            print(f"⚠️ Error actualizando UltimaEjecucion en SQL Server: {str(e)}")
         
         # Crear log de inicio del proceso
         MigrationLog.log(
@@ -374,20 +561,53 @@ class MigrationProcess(models.Model):
         except Exception as e:
             self.status = 'failed'
             
-            # Crear log de error general
+            # 🐛 DEBUG: Log detallado con traceback completo
+            import traceback
+            error_traceback = traceback.format_exc()
+            
+            error_details = {
+                'error_type': type(e).__name__,
+                'error_message': str(e),
+                'traceback': error_traceback,
+                'process_id': self.id,
+                'process_name': self.name,
+                'source_type': self.source.source_type if self.source else 'unknown',
+                'selected_tables': self.selected_tables,
+                'selected_sheets': self.selected_sheets,
+                'selected_columns': self.selected_columns,
+                'column_mappings': self.column_mappings
+            }
+            
+            print(f"\n{'='*80}")
+            print(f"❌ ERROR CRÍTICO EJECUTANDO PROCESO: {self.name} (ID: {self.id})")
+            print(f"{'='*80}")
+            print(f"🔴 Tipo de error: {type(e).__name__}")
+            print(f"🔴 Mensaje: {str(e)}")
+            print(f"\n📋 CONTEXTO DEL PROCESO:")
+            print(f"   - Source Type: {self.source.source_type if self.source else 'N/A'}")
+            print(f"   - Selected Tables: {self.selected_tables}")
+            print(f"   - Selected Sheets: {self.selected_sheets}")
+            print(f"   - Selected Columns: {self.selected_columns}")
+            print(f"   - Column Mappings: {self.column_mappings}")
+            print(f"\n🔍 TRACEBACK COMPLETO:")
+            print(error_traceback)
+            print(f"{'='*80}\n")
+            
+            # Crear log de error general con detalles completos
             MigrationLog.log(
                 process=self,
                 stage='data_loading',
-                message='Error general durante la ejecución del proceso',
+                message=f'Error general: {type(e).__name__}',
                 level='critical',
                 error=str(e),
+                details=error_details,
                 user='sistema'
             )
             
             # CORRECCIÓN 6: Asegurar que el error se registre en ProcesoLog
             if 'tracker' in locals():
                 tracker.finalizar_error(e)
-            print(f"❌ Error ejecutando proceso {self.name}: {str(e)}")
+            
             raise e
         finally:
             self.save()
@@ -649,12 +869,22 @@ class MigrationProcess(models.Model):
                     # 4. Transferir DATOS REALES de esta hoja a su tabla individual
                     tracker_hoja.actualizar_estado('TRANSFIRIENDO', f'Creando tabla individual para hoja {sheet_name}')
                     
+                    # 🆕 NUEVO: Obtener nombre personalizado de la hoja si existe
+                    custom_sheet_name = sheet_name
+                    if self.column_mappings and '__sheet_names__' in self.column_mappings:
+                        sheet_mappings = self.column_mappings['__sheet_names__']
+                        if sheet_name in sheet_mappings:
+                            custom_sheet_name = sheet_mappings[sheet_name]
+                            print(f"🔄 DEBUG: Usando nombre personalizado para hoja '{sheet_name}' → '{custom_sheet_name}'")
+                    
                     # Generar nombre de tabla con nomenclatura dinámica: Proceso_Hoja
-                    nombre_tabla_destino = f"{self.name}_{sheet_name}".replace(' ', '_').replace('-', '_')
+                    nombre_tabla_destino = f"{self.name}_{custom_sheet_name}".replace(' ', '_').replace('-', '_')
                     # Limpiar caracteres especiales del nombre
                     import re
                     nombre_tabla_destino = re.sub(r'[^\w]', '_', nombre_tabla_destino)
                     nombre_tabla_destino = re.sub(r'_+', '_', nombre_tabla_destino).strip('_')
+                    
+                    print(f"📋 DEBUG: Nombre final de tabla destino: '{nombre_tabla_destino}'")
                     
                     # ✅ GUARDAR DATOS REALES DEL DATAFRAME (NO METADATOS)
                     success_hoja, result_info_hoja = self._save_dataframe_to_destination(
@@ -662,7 +892,7 @@ class MigrationProcess(models.Model):
                         nombre_tabla_destino=nombre_tabla_destino,  # Nombre dinámico de la tabla
                         proceso_id=proceso_id_hoja,
                         usuario_responsable='sistema_automatizado',
-                        source_table_name=sheet_name  # Pasar nombre de hoja para aplicar mapeos
+                        source_table_name=sheet_name  # Pasar nombre de hoja ORIGINAL para aplicar mapeos de columnas
                     )
                     
                     # DEBUG: Logging adicional para detectar el problema
@@ -1504,8 +1734,13 @@ class MigrationProcess(models.Model):
                 # Preparar SQL INSERT con columnas limpias (usando nombres mapeados)
                 clean_columns_list = []
                 for col in df_datos.columns:
-                    # Usar nombre personalizado si existe en el mapeo
-                    custom_name = column_mappings.get(col, col)
+                    # 🔧 FIX: column_mappings es un dict de dicts, no un dict simple
+                    # Estructura: {'col1': {'renamed_to': 'nuevo_nombre', 'sql_type': ..., ...}}
+                    if isinstance(column_mappings.get(col), dict):
+                        custom_name = column_mappings[col].get('renamed_to', col)
+                    else:
+                        custom_name = col
+                    
                     clean_col = custom_name.replace(' ', '_').replace('-', '_')
                     clean_col = ''.join(c for c in clean_col if c.isalnum() or c == '_')
                     clean_columns_list.append(clean_col)
@@ -1516,34 +1751,81 @@ class MigrationProcess(models.Model):
                 
                 print(f"🔍 SQL INSERT: {insert_sql}")
 
-                # Normalizar DataFrame antes de la inserción usando utilitario reutilizable
-                try:
-                    from .sql_utils import normalize_df_for_sql
-                except Exception as e:
-                    print(f"ERROR: No se pudo importar sql_utils.normalize_df_for_sql: {e}")
-                    raise
-
-                df_normalized, normalization_issues = normalize_df_for_sql(df_datos, strict=False)
-                if normalization_issues:
-                    # Registrar advertencias de normalización en tracker/log
-                    print(f"⚠️ Advertencias de normalización antes de insertar: {normalization_issues}")
+                # 🆕 PASO 1: Validar y normalizar con el nuevo sistema de validadores
+                from .utils.validators import validate_column_mappings, normalize_dataframe_by_mappings
+                import logging
+                logger = logging.getLogger(__name__)
+                
+                # Validar configuración de columnas antes de procesar
+                if column_mappings:
+                    is_valid, validation_errors = validate_column_mappings(df_datos, column_mappings)
                     
-                    # Crear mensaje detallado para el usuario
-                    warning_msg = f"⚠️ Normalización de datos para '{nombre_tabla_destino}':\n"
-                    for issue in normalization_issues:
-                        warning_msg += f"  • Columna '{issue['column']}': {issue['count']} valores inválidos convertidos a NULL\n"
-                        warning_msg += f"    Ejemplo: '{issue.get('example', 'N/A')}'\n"
+                    if not is_valid:
+                        logger.error(f"❌ Errores de validación en '{nombre_tabla_destino}':")
+                        for error in validation_errors:
+                            logger.error(f"  • {error}")
+                        # Continuar pero registrar errores
+                    else:
+                        logger.info(f"✅ Validación de configuración exitosa para '{nombre_tabla_destino}'")
+                
+                # Normalizar DataFrame usando column_mappings
+                if column_mappings:
+                    df_normalized, normalization_warnings = normalize_dataframe_by_mappings(df_datos, column_mappings)
                     
-                    # Imprimir warning completo en el log
-                    print(warning_msg)
+                    if normalization_warnings:
+                        logger.warning(f"⚠️ Advertencias de normalización en '{nombre_tabla_destino}':")
+                        for warning in normalization_warnings:
+                            logger.warning(f"  • {warning}")
+                    
+                    logger.info(f"✅ Normalización completada: {len(df_datos)} filas procesadas")
+                else:
+                    # Si no hay column_mappings, usar normalización básica
+                    try:
+                        from .sql_utils import normalize_df_for_sql
+                    except Exception as e:
+                        print(f"ERROR: No se pudo importar sql_utils.normalize_df_for_sql: {e}")
+                        raise
 
-                # Convertir DataFrame normalizado a lista de tuplas para inserción
+                    df_normalized, normalization_issues = normalize_df_for_sql(df_datos, strict=False)
+                    if normalization_issues:
+                        # Registrar advertencias de normalización en tracker/log
+                        print(f"⚠️ Advertencias de normalización antes de insertar: {normalization_issues}")
+                        
+                        # Crear mensaje detallado para el usuario
+                        warning_msg = f"⚠️ Normalización de datos para '{nombre_tabla_destino}':\n"
+                        for issue in normalization_issues:
+                            warning_msg += f"  • Columna '{issue['column']}': {issue['count']} valores inválidos convertidos a NULL\n"
+                            warning_msg += f"    Ejemplo: '{issue.get('example', 'N/A')}'\n"
+                        
+                        # Imprimir warning completo en el log
+                        print(warning_msg)
+
+                # Aplicar defaults usando la función dedicada (PASO 2 - ya existente)
+                # Obtener configuración de columnas para esta hoja
+                column_configs = {}
+                if self.column_mappings and source_table_name and source_table_name in self.column_mappings:
+                    column_configs = self.column_mappings[source_table_name]
+                
+                # Aplicar defaults usando la función dedicada
+                if column_configs:
+                    try:
+                        from .sql_utils import apply_default_values_from_mappings
+                        df_with_defaults = apply_default_values_from_mappings(df_normalized, column_configs)
+                        print(f"✅ Valores por defecto aplicados según column_mappings")
+                    except Exception as e:
+                        print(f"⚠️ Error aplicando valores por defecto: {e}")
+                        df_with_defaults = df_normalized
+                else:
+                    df_with_defaults = df_normalized
+                
+                # PASO 3: Convertir DataFrame a lista de tuplas para inserción SQL
                 valores_a_insertar = []
-                for _, row in df_normalized.iterrows():
+                for _, row in df_with_defaults.iterrows():
                     valores_fila = []
-                    for col in df_normalized.columns:
+                    for col in df_with_defaults.columns:
                         valor = row[col]
-                        # Pandas may keep Python None or numpy.nan; standardize to None
+                        
+                        # Convertir tipos especiales de pandas/numpy a tipos Python nativos
                         if pd.isna(valor):
                             valores_fila.append(None)
                         elif isinstance(valor, pd.Timestamp):
@@ -1595,6 +1877,55 @@ class MigrationProcess(models.Model):
             cursor.close()
             conn.close()
             
+            # 🆕 GUARDAR RESUMEN EN ResultadosProcesados
+            try:
+                from .models_destino import ResultadosProcesados
+                from datetime import datetime
+                import json
+                
+                # Calcular tiempo de ejecución (aproximado)
+                tiempo_ejecucion = 0.0  # Se puede mejorar pasando tiempo_inicio como parámetro
+                
+                # Preparar datos procesados para el resumen
+                datos_json = {
+                    'tabla_destino': nombre_tabla_destino,
+                    'campos_columnas': list(df_datos.columns),
+                    'total_registros_cargados': registros_insertados,
+                    'estado_final': 'COMPLETADO',
+                    'timestamp_procesamiento': datetime.now().isoformat(),
+                    'fuente': source_table_name if source_table_name else 'N/A'
+                }
+                
+                # Metadatos del proceso
+                metadatos_proceso = {
+                    'version_proceso': '1.0',
+                    'tabla_creada': nombre_tabla_destino,
+                    'columnas_procesadas': len(df_datos.columns),
+                    'hoja_origen': source_table_name if source_table_name else None
+                }
+                
+                # Crear registro en ResultadosProcesados
+                resultado = ResultadosProcesados(
+                    ProcesoID=proceso_id,
+                    NombreProceso=self.name,
+                    DatosProcesados=json.dumps(datos_json, ensure_ascii=False),
+                    UsuarioResponsable=usuario_responsable,
+                    EstadoProceso='COMPLETADO',
+                    TipoOperacion=f'MIGRACION_{nombre_tabla_destino.upper()}',
+                    RegistrosAfectados=registros_insertados,
+                    TiempoEjecucion=tiempo_ejecucion,
+                    MetadatosProceso=json.dumps(metadatos_proceso, ensure_ascii=False)
+                )
+                
+                # Guardar usando la conexión destino
+                resultado.save(using='destino')
+                
+                print(f"✅ Resumen guardado en ResultadosProcesados - ID: {resultado.ResultadoID}")
+                
+            except Exception as e:
+                print(f"⚠️ Advertencia: No se pudo guardar resumen en ResultadosProcesados: {str(e)}")
+                # No detener el proceso por este error
+            
             return True, {
                 'success': True,
                 'table_name': nombre_tabla_destino,
@@ -1616,6 +1947,51 @@ class MigrationProcess(models.Model):
             except:
                 pass
             
+            # 🆕 GUARDAR RESUMEN DE ERROR EN ResultadosProcesados
+            try:
+                from .models_destino import ResultadosProcesados
+                from datetime import datetime
+                import json
+                
+                # Preparar datos de error
+                datos_json = {
+                    'tabla_destino': nombre_tabla_destino,
+                    'estado_final': 'ERROR',
+                    'timestamp_procesamiento': datetime.now().isoformat(),
+                    'detalles_error': error_msg,
+                    'fuente': source_table_name if source_table_name else 'N/A'
+                }
+                
+                # Metadatos del error
+                metadatos_proceso = {
+                    'version_proceso': '1.0',
+                    'tabla_objetivo': nombre_tabla_destino,
+                    'error_completo': str(e),
+                    'hoja_origen': source_table_name if source_table_name else None
+                }
+                
+                # Crear registro de error en ResultadosProcesados
+                resultado = ResultadosProcesados(
+                    ProcesoID=proceso_id,
+                    NombreProceso=self.name,
+                    DatosProcesados=json.dumps(datos_json, ensure_ascii=False),
+                    UsuarioResponsable=usuario_responsable,
+                    EstadoProceso='ERROR',
+                    TipoOperacion=f'MIGRACION_{nombre_tabla_destino.upper()}',
+                    RegistrosAfectados=0,
+                    TiempoEjecucion=0.0,
+                    MetadatosProceso=json.dumps(metadatos_proceso, ensure_ascii=False)
+                )
+                
+                # Guardar usando la conexión destino
+                resultado.save(using='destino')
+                
+                print(f"✅ Resumen de error guardado en ResultadosProcesados - ID: {resultado.ResultadoID}")
+                
+            except Exception as error_log:
+                print(f"⚠️ Advertencia: No se pudo guardar resumen de error en ResultadosProcesados: {str(error_log)}")
+                # No detener el proceso por este error
+            
             return False, {
                 'success': False,
                 'error': error_msg,
@@ -1636,6 +2012,7 @@ class MigrationProcess(models.Model):
             str: SQL CREATE TABLE statement
         """
         import pandas as pd
+        from datetime import datetime
         
         columns_definitions = []
         
@@ -1646,38 +2023,86 @@ class MigrationProcess(models.Model):
             print(f"🔍 DEBUG: Aplicando mapeos de columnas para '{source_table_name}': {column_mappings}")
         
         for column in df.columns:
-            # Usar nombre personalizado si existe en el mapeo, de lo contrario usar el original
-            custom_column_name = column_mappings.get(column, column)
+            # Obtener configuración de la columna (puede ser string simple o dict completo)
+            column_config = column_mappings.get(column)
+            
+            # Compatibilidad con formato antiguo (string) y nuevo (dict)
+            if isinstance(column_config, str):
+                # Formato antiguo: solo nombre renombrado
+                custom_column_name = column_config
+                nullable = True
+                default_value = None
+                sql_type_override = None
+            elif isinstance(column_config, dict):
+                # Formato nuevo: configuración completa
+                custom_column_name = column_config.get('renamed_to', column)
+                nullable = column_config.get('nullable', True)
+                default_value = column_config.get('default_value')
+                sql_type_override = column_config.get('sql_type')
+            else:
+                # Sin configuración: usar valores por defecto
+                custom_column_name = column
+                nullable = True
+                default_value = None
+                sql_type_override = None
             
             # Limpiar nombre de columna para SQL
             clean_column = str(custom_column_name).replace(' ', '_').replace('-', '_')
             clean_column = ''.join(c for c in clean_column if c.isalnum() or c == '_')
             
-            # Determinar tipo SQL basado en el tipo del DataFrame
-            dtype = df[column].dtype
-            
-            if pd.api.types.is_integer_dtype(dtype):
-                sql_type = 'INT'
-            elif pd.api.types.is_float_dtype(dtype):
-                sql_type = 'FLOAT'
-            elif pd.api.types.is_bool_dtype(dtype):
-                sql_type = 'BIT'
-            elif pd.api.types.is_datetime64_any_dtype(dtype):
-                sql_type = 'DATETIME2'
+            # Determinar tipo SQL
+            if sql_type_override:
+                sql_type = sql_type_override
             else:
-                # Para strings y otros tipos, usar NVARCHAR
-                # Calcular longitud máxima de la columna
-                max_length = df[column].astype(str).str.len().max()
-                if pd.isna(max_length) or max_length == 0:
-                    max_length = 255
-                elif max_length < 50:
-                    max_length = 50
-                elif max_length > 4000:
-                    max_length = 4000
+                # Determinar tipo SQL basado en el tipo del DataFrame
+                dtype = df[column].dtype
                 
-                sql_type = f'NVARCHAR({int(max_length)})'
+                if pd.api.types.is_integer_dtype(dtype):
+                    sql_type = 'INT'
+                elif pd.api.types.is_float_dtype(dtype):
+                    sql_type = 'FLOAT'
+                elif pd.api.types.is_bool_dtype(dtype):
+                    sql_type = 'BIT'
+                elif pd.api.types.is_datetime64_any_dtype(dtype):
+                    sql_type = 'DATETIME2'
+                else:
+                    # Para strings y otros tipos, usar NVARCHAR
+                    max_length = df[column].astype(str).str.len().max()
+                    if pd.isna(max_length) or max_length == 0:
+                        max_length = 255
+                    elif max_length < 50:
+                        max_length = 50
+                    elif max_length > 4000:
+                        max_length = 4000
+                    
+                    sql_type = f'NVARCHAR({int(max_length)})'
             
-            columns_definitions.append(f'[{clean_column}] {sql_type} NULL')
+            # Construir definición de columna con nullable y default
+            null_clause = '' if nullable else 'NOT NULL'
+            default_clause = ''
+            
+            if not nullable and default_value:
+                # Manejar diferentes tipos de valores por defecto
+                if default_value == 'GETDATE()':
+                    default_clause = 'DEFAULT GETDATE()'
+                elif isinstance(default_value, str) and default_value.startswith("'") and default_value.endswith("'"):
+                    # Ya tiene comillas (ej: "' '")
+                    default_clause = f'DEFAULT {default_value}'
+                elif isinstance(default_value, str) and default_value.replace('.', '', 1).replace('-', '', 1).isdigit():
+                    # Es un número (ej: "0", "0.00")
+                    default_clause = f'DEFAULT {default_value}'
+                elif isinstance(default_value, (int, float)):
+                    # Número nativo de Python
+                    default_clause = f'DEFAULT {default_value}'
+                elif isinstance(default_value, str):
+                    # String sin comillas: agregárselas
+                    default_clause = f"DEFAULT '{default_value}'"
+                else:
+                    # Otros tipos: convertir a string
+                    default_clause = f"DEFAULT '{str(default_value)}'"
+            
+            column_def = f'[{clean_column}] {sql_type} {null_clause} {default_clause}'.strip()
+            columns_definitions.append(column_def)
         
         # Construir SQL CREATE TABLE
         create_sql = f"""

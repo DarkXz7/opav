@@ -1,0 +1,273 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Sistema de Automatización Excel-SQL{% endblock %}</title>
+    
+    <!-- CSS Libraries -->
+    <link rel="stylesheet" href="{% static 'styles/styles.css' %}">
+    <link rel="stylesheet" href="{% static 'styles/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'styles/bootstrap-icons.css' %}">
+    <link rel="stylesheet" href="{% static 'styles/fontawesome.min.css' %}">
+    <link rel="stylesheet" href="{% static 'styles/material-components-web.min.css' %}">
+    <link rel="stylesheet" href="{% static 'styles/icon.css' %}">
+    <link rel="stylesheet" href="{% static 'styles/pe7sicons.css' %}">
+    <link rel="stylesheet" href="{% static 'styles/all.min.css' %}">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="shortcut icon" href="{% static 'img/favicon-bios-new.ico' %}" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom CSS para el sistema de automatización -->
+    <style>
+        /* Estilos personalizados para el sistema Excel-SQL */
+        .system-header {
+            background: linear-gradient(135deg, #0e7490 0%, #0891b2 100%);
+        }
+        
+        .card-modern {
+            border: none;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border-radius: 0.75rem;
+            transition: all 0.3s ease;
+        }
+        
+        .card-modern:hover {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            transform: translateY(-2px);
+        }
+        
+        .btn-modern {
+            border-radius: 0.5rem;
+            padding: 0.625rem 1.25rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-primary-modern {
+            background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
+            border: none;
+            color: white;
+        }
+        
+        .btn-primary-modern:hover {
+            background: linear-gradient(135deg, #0e7490 0%, #0f766e 100%);
+            transform: translateY(-1px);
+        }
+        
+        .nav-modern .nav-link {
+            color: #374151;
+            font-weight: 500;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.2s ease;
+        }
+        
+        .nav-modern .nav-link:hover {
+            background-color: #f3f4f6;
+            color: #0891b2;
+        }
+        
+        .nav-modern .nav-link.active {
+            background-color: #0891b2;
+            color: white;
+        }
+
+        /* Loading spinner styles from original */
+        .wheel-and-hamster {
+            --dur: 1s;
+            position: fixed;
+            top: 90%;
+            left: 11%;
+            transform: translate(-70%, -70%);
+            width: 12em;
+            height: 12em;
+            font-size: 14px;
+            z-index: 50;
+            pointer-events: none;
+        }
+
+        .wheel,
+        .hamster,
+        .hamster div,
+        .spoke {
+            position: absolute;
+        }
+
+        .wheel,
+        .spoke {
+            border-radius: 50%;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .wheel {
+            background: radial-gradient(circle at center, rgba(14, 116, 144, 0.2) 40%, rgba(14, 116, 144, 0.5) 100%);
+            border: 4px solid #0e7490;
+            box-shadow: 0 0 15px rgba(14, 116, 144, 0.7), inset 0 0 10px rgba(14, 116, 144, 0.4);
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="bg-gray-50">
+    <div class="app-container app-theme-white body-tabs-shadow fixed-header fixed-sidebar">
+        
+        <!-- Header Navigation -->
+        {% include 'automatizacion/components/navbarGB.html' %}
+        
+        <!-- Main Content Area -->
+        <div class="app-main">
+            
+            <!-- Sidebar -->
+            {% include 'automatizacion/components/sidebarGB.html' %}
+            
+            <!-- Main Content -->
+            <div class="app-main__outer">
+                <div class="app-main__inner">
+                    
+                    <!-- Page Header -->
+                    <div class="app-page-title system-header">
+                        <div class="page-title-wrapper">
+                            <div class="page-title-heading">
+                                <div class="page-title-icon">
+                                    <i class="pe-7s-server text-white"></i>
+                                </div>
+                                <div>
+                                    <h1 class="text-white font-bold text-2xl">
+                                        {% block page_title %}Sistema de Automatización{% endblock %}
+                                    </h1>
+                                    <div class="page-title-subheading text-cyan-100">
+                                        {% block page_subtitle %}Conversión Excel a SQL Server{% endblock %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Breadcrumb -->
+                            <div class="page-title-actions">
+                                <nav aria-label="breadcrumb">
+                                    <ol class="breadcrumb bg-transparent p-0">
+                                        <li class="breadcrumb-item">
+                                            <a href="{% url 'automatizacion:index' %}" class="text-cyan-100 hover:text-white">
+                                                <i class="fa fa-home"></i> Inicio
+                                            </a>
+                                        </li>
+                                        {% block breadcrumb %}{% endblock %}
+                                    </ol>
+                                </nav>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Messages -->
+                    {% if messages %}
+                        <div class="container-fluid mb-4">
+                            {% for message in messages %}
+                                <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+                                    <i class="fas fa-{% if message.tags == 'error' %}exclamation-triangle{% elif message.tags == 'success' %}check-circle{% else %}info-circle{% endif %} me-2"></i>
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Main Content -->
+                    <div class="container-fluid">
+                        {% block content %}
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="card-modern p-6">
+                                    <h2 class="text-2xl font-bold text-gray-800 mb-4">Bienvenido al Sistema de Automatización</h2>
+                                    <p class="text-gray-600">Selecciona una opción del menú para comenzar.</p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endblock %}
+                    </div>
+                </div>
+                
+                <!-- Footer -->
+                <div class="app-wrapper-footer bg-white border-t">
+                    <div class="app-footer-wrapper">
+                        <div class="app-footer-left">
+                            <div class="footer-dots">
+                                <div class="dots-separator"></div>
+                                <div class="dots-separator"></div>
+                                <div class="dots-separator"></div>
+                            </div>
+                        </div>
+                        <div class="app-footer-right">
+                            <ul class="nav">
+                                <li class="nav-item">
+                                    <span class="nav-link">
+                                        Sistema de Automatización Excel-SQL &copy; {{ "now"|date:"Y" }}
+                                    </span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Loading Spinner -->
+        <div class="wheel-and-hamster" id="loading-spinner" style="display:none;">
+            <div class="wheel"></div>
+            <div class="hamster">
+                <div class="hamster__body">
+                    <div class="hamster__head">
+                        <div class="hamster__ear"></div>
+                        <div class="hamster__eye"></div>
+                        <div class="hamster__nose"></div>
+                    </div>
+                    <div class="hamster__limb hamster__limb--fr"></div>
+                    <div class="hamster__limb hamster__limb--fl"></div>
+                    <div class="hamster__limb hamster__limb--br"></div>
+                    <div class="hamster__limb hamster__limb--bl"></div>
+                    <div class="hamster__tail"></div>
+                </div>
+            </div>
+            <div class="spoke"></div>
+        </div>
+    </div>
+
+    <!-- JavaScript Libraries -->
+    <script src="{% static 'scripts/jquery.min.js' %}"></script>
+    <script src="{% static 'scripts/popper.min.js' %}"></script>
+    <script src="{% static 'scripts/bootstrap.min.js' %}"></script>
+    <script src="{% static 'scripts/material-components-web.min.js' %}"></script>
+    <script src="{% static 'scripts/components.js' %}"></script>
+    <script src="{% static 'scripts/script.js' %}"></script>
+    
+    <!-- Sistema de validación existente -->
+    <script src="{% static 'js/validation_and_inference.js' %}"></script>
+    
+    <script>
+        // Funciones de utilidad para el sistema
+        function showLoading() {
+            document.getElementById('loading-spinner').style.display = 'block';
+        }
+        
+        function hideLoading() {
+            document.getElementById('loading-spinner').style.display = 'none';
+        }
+        
+        // Auto-hide alerts after 5 seconds
+        setTimeout(function() {
+            $('.alert').fadeOut('slow');
+        }, 5000);
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

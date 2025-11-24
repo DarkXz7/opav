@@ -18,9 +18,14 @@ urlpatterns = [
     
     # Rutas para Excel/CSV
     path('excel/upload/', views.upload_excel, name='upload_excel'),
-    path('excel/<int:source_id>/sheets/', views.list_excel_sheets, name='list_excel_sheets'),
+    # ELIMINADO: Vista intermedia /sheets/ - ahora redirige directo a multi-config
+    # path('excel/<int:source_id>/sheets/', views.list_excel_sheets, name='list_excel_sheets'),
     path('excel/<int:source_id>/multi-config/', views.list_excel_multi_sheet_columns, name='list_excel_multi_sheet_columns'),
     path('excel/<int:source_id>/sheet/<str:sheet_name>/columns/', views.list_excel_columns, name='list_excel_columns'),
+    
+    # Nuevas rutas AJAX para validación en tiempo real
+    path('api/validate-sheet-rename/', views.validate_sheet_rename, name='validate_sheet_rename'),
+    path('api/excel/<int:source_id>/infer-types/', views.infer_column_types, name='infer_column_types'),
     
     # Rutas para SQL Server
     path('sql/connect/', views.connect_sql, name='connect_sql'),
@@ -71,4 +76,7 @@ urlpatterns = [
     # Rutas para Sistema de Logs (SQL Server)
     path('logs/', log_views.view_logs, name='view_logs'),
     path('logs/<str:log_id>/', log_views.view_log_detail, name='view_log_detail'),
+    
+    # Nueva plantilla moderna
+    path('modern/', views.modern_view, name='modern_view'),
 ]

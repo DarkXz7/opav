@@ -1,4 +1,4 @@
-import os
+﻿import os
 import json
 import pandas as pd
 import tempfile
@@ -20,14 +20,28 @@ from .decorators_optimized import log_operation_unified
 from .frontend_logging import auto_log_frontend_process
 
 from .models import DataSourceType, DataSource, DatabaseConnection, MigrationProcess, MigrationLog
-from .utils import ExcelProcessor, CSVProcessor, SQLServerConnector, TargetDBManager
+from .legacy_utils import ExcelProcessor, CSVProcessor, SQLServerConnector, TargetDBManager
 from .web_logger_optimized import registrar_proceso_web, finalizar_proceso_web
+
+# ðŸ†• Importar mÃ³dulo de validadores
+from .utils.validators import (
+    normalize_name,
+    validate_sheet_name,
+    validate_column_name,
+    infer_sql_type,
+    normalize_value_by_type,
+    normalize_dataframe_by_mappings,
+    validate_column_mappings
+)
+
+import logging
+logger = logging.getLogger(__name__)
 
 # Vistas principales
 
 def index(request):
-    """Vista principal de la aplicación"""
-    # Obtener procesos guardados para mostrarlos en la página principal
+    """Vista principal de la aplicaciÃ³n"""
+    # Obtener procesos guardados para mostrarlos en la pÃ¡gina principal
     recent_processes = MigrationProcess.objects.all().order_by('-created_at')[:5]
     saved_connections = DatabaseConnection.objects.all().order_by('-created_at')[:5]
     
@@ -45,19 +59,25 @@ def new_process(request):
             {'id': 'csv', 'name': 'CSV'},
             {'id': 'sql', 'name': 'SQL Server'}
         ],
-        'connections': DatabaseConnection.objects.all()
+        'connections': DatabaseConnection.objects.all().order_by('-last_used', '-created_at')[:5]
     }
+    
+    # Debug: Imprimir información para verificar
+    print(f"DEBUG: Conexiones encontradas: {context['connections'].count()}")
+    for conn in context['connections']:
+        print(f"DEBUG: Conexión: {conn.name}")
+    
     return render(request, 'automatizacion/new_process.html', context)
 
 def list_processes(request):
-    """Lista todos los procesos de migración guardados, ordenados por última modificación"""
+    """Lista todos los procesos de migraciÃ³n guardados, ordenados por Ãºltima modificaciÃ³n"""
     from automatizacion.logs.models_logs import ProcesoLog
     from django.db.models import Q
     
-    # Ordenar por updated_at (última modificación) para mostrar procesos recientemente editados primero
+    # Ordenar por updated_at (Ãºltima modificaciÃ³n) para mostrar procesos recientemente editados primero
     processes = MigrationProcess.objects.all().order_by('-updated_at')
     
-    # Enriquecer cada proceso con información de última ejecución
+    # Enriquecer cada proceso con informaciÃ³n de Ãºltima ejecuciÃ³n
     for process in processes:
         if process.source.source_type == 'sql':
             # Para SQL: buscar en ProcesoLog
@@ -93,7 +113,7 @@ def view_process(request, process_id):
     """Muestra los detalles de un proceso guardado"""
     process = get_object_or_404(MigrationProcess, pk=process_id)
     
-    # 🔧 CORRECCIÓN: Para procesos SQL, obtener logs de ProcesoLog filtrando por MigrationProcessID o nombre
+    # ðŸ”§ CORRECCIÃ“N: Para procesos SQL, obtener logs de ProcesoLog filtrando por MigrationProcessID o nombre
     if process.source.source_type == 'sql':
         from automatizacion.logs.models_logs import ProcesoLog
         from django.db.models import Q
@@ -234,21 +254,21 @@ def view_process(request, process_id):
 def run_process(request, process_id):
     """
     Ejecuta un proceso guardado 
-    ✅ CORREGIDO: Elimina logging duplicado y usa solo el log del modelo MigrationProcess.run()
+    âœ… CORREGIDO: Elimina logging duplicado y usa solo el log del modelo MigrationProcess.run()
     """
     import traceback
     process = get_object_or_404(MigrationProcess, pk=process_id)
     
-    # ✅ CORRECCIÓN: Refrescar el proceso desde la base de datos para asegurar datos actualizados
+    # âœ… CORRECCIÃ“N: Refrescar el proceso desde la base de datos para asegurar datos actualizados
     # Esto evita problemas de cache cuando se edita y ejecuta inmediatamente
     process.refresh_from_db()
     
     try:
-        print(f"🚀 Iniciando ejecución del proceso: {process.name} (ID: {process.id})")
-        print(f"📋 Columnas seleccionadas: {process.selected_columns}")
-        print(f"📋 Mapeos de columnas: {process.column_mappings}")
+        print(f"ðŸš€ Iniciando ejecuciÃ³n del proceso: {process.name} (ID: {process.id})")
+        print(f"ðŸ“‹ Columnas seleccionadas: {process.selected_columns}")
+        print(f"ðŸ“‹ Mapeos de columnas: {process.column_mappings}")
         
-        # ✅ CORRECCIÓN: Usar SOLO process.run() que ya maneja el logging correctamente
+        # âœ… CORRECCIÃ“N: Usar SOLO process.run() que ya maneja el logging correctamente
         # Esto evita logs duplicados y asegura que MigrationProcessID sea correcto
         process.run()
         
@@ -256,20 +276,20 @@ def run_process(request, process_id):
         
     except Exception as e:
         error_traceback = traceback.format_exc()
-        print(f"❌ Error ejecutando proceso {process.name}: {str(e)}")
-        print(f"📋 Traceback completo:\n{error_traceback}")
+        print(f"âŒ Error ejecutando proceso {process.name}: {str(e)}")
+        print(f"ðŸ“‹ Traceback completo:\n{error_traceback}")
         
         # Mostrar error detallado al usuario
         error_msg = f'Error al ejecutar el proceso: {str(e)}'
         if "KeyError" in str(e) and "name" in str(e):
-            error_msg += '\n\n⚠️ SOLUCIÓN: Este proceso fue creado antes de la corrección. Por favor, elimínalo y crea uno NUEVO seleccionando las hojas y columnas de nuevo.'
+            error_msg += '\n\nâš ï¸ SOLUCIÃ“N: Este proceso fue creado antes de la correcciÃ³n. Por favor, elimÃ­nalo y crea uno NUEVO seleccionando las hojas y columnas de nuevo.'
         
         messages.error(request, error_msg)
     
     return redirect('automatizacion:view_process', process_id=process.id)
 
 def delete_process(request, process_id):
-    """Elimina un proceso guardado con confirmación"""
+    """Elimina un proceso guardado con confirmaciÃ³n"""
     process = get_object_or_404(MigrationProcess, pk=process_id)
     
     if request.method == 'POST':
@@ -293,7 +313,7 @@ def delete_process(request, process_id):
             )
             return render(request, 'automatizacion/confirm_delete.html', {'process': process})
     
-    # GET request - mostrar página de confirmación
+    # GET request - mostrar pÃ¡gina de confirmaciÃ³n
     return render(request, 'automatizacion/confirm_delete.html', {'process': process})
 
 # Vistas para Excel/CSV
@@ -301,13 +321,13 @@ def delete_process(request, process_id):
 def upload_excel(request):
     """Maneja la carga de archivos Excel/CSV - SIN LOGGING INDIVIDUAL"""
     
-    # NO crear logger aquí - será creado solo en save_process al final del flujo
+    # NO crear logger aquÃ­ - serÃ¡ creado solo en save_process al final del flujo
     
     if request.method == 'POST' and request.FILES.get('file'):
         uploaded_file = request.FILES['file']
         file_type = request.POST.get('file_type', 'excel')
         
-        # NO crear logging aquí - será manejado en save_process
+        # NO crear logging aquÃ­ - serÃ¡ manejado en save_process
         
         try:
             # Guardar el archivo
@@ -322,15 +342,16 @@ def upload_excel(request):
                 file_path=file_path
             )
             
-            # NO registrar aquí - será registrado en save_process al final
+            # NO registrar aquÃ­ - serÃ¡ registrado en save_process al final
             
+            # ðŸ†• CAMBIO: Redirect directo a multi-config (sin pasar por /sheets/)
             if file_type == 'excel':
-                return redirect('automatizacion:list_excel_sheets', source_id=source.id)
+                return redirect('automatizacion:list_excel_multi_sheet_columns', source_id=source.id)
             else:  # CSV
                 return redirect('automatizacion:list_excel_columns', source_id=source.id, sheet_name='csv_data')
         
         except Exception as e:
-            # NO registrar error aquí - solo mostrar al usuario
+            # NO registrar error aquÃ­ - solo mostrar al usuario
             
             # Mostrar mensaje de error al usuario
             messages.error(request, f"Error al procesar el archivo: {str(e)}")
@@ -338,7 +359,7 @@ def upload_excel(request):
             
     return render(request, 'automatizacion/upload_excel.html')
 
-@log_operation_unified("Exploración de hojas Excel")
+@log_operation_unified("ExploraciÃ³n de hojas Excel")
 def list_excel_sheets(request, source_id):
     """Lista las hojas de un archivo Excel"""
     source = get_object_or_404(DataSource, pk=source_id)
@@ -373,7 +394,15 @@ def list_excel_sheets(request, source_id):
     return render(request, 'automatizacion/list_excel_sheets.html', context)
 
 def list_excel_multi_sheet_columns(request, source_id):
-    """Nueva vista integrada para selección de hojas y columnas de Excel"""
+    """
+    Nueva vista integrada para selecciÃ³n de hojas y columnas de Excel.
+    
+    MEJORAS IMPLEMENTADAS:
+    - Inferencia automÃ¡tica de tipos SQL por columna
+    - Nombre normalizado sugerido para cada hoja
+    - Preview de datos (primeras 5 filas)
+    - InformaciÃ³n de tipos con confianza
+    """
     source = get_object_or_404(DataSource, pk=source_id)
     
     if source.source_type != 'excel':
@@ -387,18 +416,67 @@ def list_excel_multi_sheet_columns(request, source_id):
         
     sheets = processor.get_sheet_names()
     
-    # Obtener datos completos de cada hoja: columnas y vista previa
+    logger.info(f"Procesando archivo Excel: {source.name}")
+    logger.info(f"Hojas encontradas: {len(sheets)} - {sheets}")
+    
+    # Obtener datos completos de cada hoja: columnas, preview e inferencia de tipos
     sheets_data = {}
-    for sheet in sheets:
-        columns = processor.get_sheet_columns(sheet)
-        preview = processor.get_sheet_preview(sheet)
+    
+    try:
+        # Leer archivo con pandas para inferencia de tipos
+        excel_file = pd.ExcelFile(source.file_path)
         
-        sheets_data[sheet] = {
-            'columns': columns,
-            'preview': preview,
-            'total_rows': preview.get('total_rows', 0) if preview else 0,
-            'column_count': len(columns) if columns else 0
-        }
+        for sheet in sheets:
+            # Obtener columnas y preview usando el processor existente
+            columns = processor.get_sheet_columns(sheet)
+            preview = processor.get_sheet_preview(sheet)
+            
+            # Leer DataFrame para inferencia de tipos
+            df = pd.read_excel(excel_file, sheet_name=sheet)
+            
+            # ðŸ†• Inferir tipos SQL para cada columna
+            column_types = {}
+            for col in df.columns:
+                try:
+                    type_info = infer_sql_type(df[col])
+                    column_types[str(col)] = type_info
+                except Exception as e:
+                    logger.warning(f"No se pudo inferir tipo para columna '{col}' en hoja '{sheet}': {e}")
+                    column_types[str(col)] = {
+                        'sql_type': 'NVARCHAR(255)',
+                        'confidence': 0.0,
+                        'nullable': True,
+                        'default_value': None,
+                        'warnings': [f'Error en inferencia: {str(e)}'],
+                        'mixed_types': False
+                    }
+            
+            # ðŸ†• Generar nombre normalizado sugerido para la hoja
+            suggested_name = normalize_name(sheet)
+            
+            # Verificar duplicados en columnas (debug)
+            column_names = [col['name'] for col in columns] if columns else []
+            unique_names = set(column_names)
+            if len(column_names) != len(unique_names):
+                from collections import Counter
+                duplicates = {name: count for name, count in Counter(column_names).items() if count > 1}
+                logger.warning(f"Columnas duplicadas en hoja '{sheet}': {duplicates}")
+            
+            sheets_data[sheet] = {
+                'columns': columns,
+                'preview': preview,
+                'total_rows': preview.get('total_rows', 0) if preview else 0,
+                'column_count': len(columns) if columns else 0,
+                'column_types': column_types,  # ðŸ†• Tipos inferidos
+                'suggested_name': suggested_name  # ðŸ†• Nombre normalizado
+            }
+            
+            logger.info(f"Hoja '{sheet}': {len(columns)} columnas, {len(df)} filas, nombre sugerido: '{suggested_name}'")
+        
+    except Exception as e:
+        logger.error(f"Error procesando archivo Excel: {e}", exc_info=True)
+        messages.error(request, f"Error al procesar el archivo: {str(e)}")
+        return redirect('automatizacion:upload_excel')
     
     context = {
         'source': source,
@@ -424,7 +502,7 @@ def list_excel_columns(request, source_id, sheet_name):
         processor = CSVProcessor(source.file_path)
         columns = processor.get_columns()
         preview = processor.get_preview()
-        sheet_name = 'csv_data'  # Nombre genérico para CSV
+        sheet_name = 'csv_data'  # Nombre genÃ©rico para CSV
     
     context = {
         'source': source,
@@ -437,11 +515,11 @@ def list_excel_columns(request, source_id, sheet_name):
 
 # Vistas para SQL Server
 
-@log_operation("Conexión a SQL Server")
+@log_operation("ConexiÃ³n a SQL Server")
 def connect_sql(request):
-    """Maneja la conexión a un servidor SQL Server"""
+    """Maneja la conexiÃ³n a un servidor SQL Server"""
     if request.method == 'POST':
-        # Obtener datos de conexión
+        # Obtener datos de conexiÃ³n
         name = request.POST.get('name')
         server = request.POST.get('server')
         username = request.POST.get('username')
@@ -461,10 +539,10 @@ def connect_sql(request):
                 }
             })
         
-        # Probar conexión al servidor (sin especificar base de datos)
+        # Probar conexiÃ³n al servidor (sin especificar base de datos)
         connector = SQLServerConnector(server, username, password, port)
         if not connector.test_connection():
-            messages.error(request, 'No se pudo conectar al servidor. Verifique los datos de conexión.')
+            messages.error(request, 'No se pudo conectar al servidor. Verifique los datos de conexiÃ³n.')
             return render(request, 'automatizacion/connect_sql.html', {
                 'form_data': {
                     'name': name,
@@ -478,12 +556,12 @@ def connect_sql(request):
         # Obtener la lista de bases de datos disponibles
         databases = connector.get_databases()
         
-        # Verificar si ya existe una conexión con el mismo nombre
+        # Verificar si ya existe una conexiÃ³n con el mismo nombre
         existing_connection = DatabaseConnection.objects.filter(name=name).first()
         
         if existing_connection:
-            # No permitir crear conexión con nombre duplicado
-            messages.error(request, f'Ya existe una conexión con el nombre "{name}". Por favor, elija un nombre diferente.')
+            # No permitir crear conexiÃ³n con nombre duplicado
+            messages.error(request, f'Ya existe una conexiÃ³n con el nombre "{name}". Por favor, elija un nombre diferente.')
             return render(request, 'automatizacion/connect_sql.html', {
                 'form_data': {
                     'name': name,
@@ -494,7 +572,7 @@ def connect_sql(request):
                 }
             })
         
-        # Crear nueva conexión
+        # Crear nueva conexiÃ³n
         connection = DatabaseConnection.objects.create(
             name=name,
             server=server,
@@ -504,33 +582,33 @@ def connect_sql(request):
             last_used=timezone.now(),
             available_databases=databases
         )
-        messages.success(request, 'Nueva conexión creada correctamente')
+        messages.success(request, 'Nueva conexiÃ³n creada correctamente')
         
-        # Redirigir a la página de selección de base de datos
+        # Redirigir a la pÃ¡gina de selecciÃ³n de base de datos
         return redirect('automatizacion:list_sql_databases', connection_id=connection.id)
         
     return render(request, 'automatizacion/connect_sql.html')
 
 def list_connections(request):
-    """Lista todas las conexiones guardadas (solo una por nombre único)"""
-    # Obtener solo una conexión por cada nombre único, priorizando la más reciente
+    """Lista todas las conexiones guardadas (solo una por nombre Ãºnico)"""
+    # Obtener solo una conexiÃ³n por cada nombre Ãºnico, priorizando la mÃ¡s reciente
     connections = DatabaseConnection.objects.values('name').annotate(
         latest_id=models.Max('id'),
         latest_created=models.Max('created_at')
     ).order_by('-latest_created')
     
-    # Obtener las conexiones completas basadas en los IDs únicos
+    # Obtener las conexiones completas basadas en los IDs Ãºnicos
     connection_ids = [conn['latest_id'] for conn in connections]
     unique_connections = DatabaseConnection.objects.filter(id__in=connection_ids).order_by('-created_at')
     
     return render(request, 'automatizacion/list_connections.html', {'connections': unique_connections})
 
-@log_operation("Vista de conexión SQL")
+@log_operation("Vista de conexiÃ³n SQL")
 def view_connection(request, connection_id):
-    """Muestra detalles de una conexión guardada"""
+    """Muestra detalles de una conexiÃ³n guardada"""
     connection = get_object_or_404(DatabaseConnection, pk=connection_id)
     
-    # Obtener procesos relacionados a través de DataSource
+    # Obtener procesos relacionados a travÃ©s de DataSource
     # DatabaseConnection -> DataSource -> MigrationProcess
     related_processes = MigrationProcess.objects.filter(
         source__connection=connection
@@ -549,7 +627,7 @@ def list_sql_databases(request, connection_id):
     """Lista todas las bases de datos disponibles en el servidor SQL"""
     connection = get_object_or_404(DatabaseConnection, pk=connection_id)
     
-    # Actualizar fecha de último uso
+    # Actualizar fecha de Ãºltimo uso
     connection.last_used = timezone.now()
     connection.save()
     
@@ -567,7 +645,7 @@ def list_sql_databases(request, connection_id):
         
         databases = connector.get_databases()
         
-        # Guardar la lista de bases de datos en la conexión
+        # Guardar la lista de bases de datos en la conexiÃ³n
         connection.available_databases = databases
         connection.save()
     
@@ -590,7 +668,7 @@ def select_database(request, connection_id):
             messages.error(request, 'Debe seleccionar una base de datos')
             return redirect('automatizacion:list_sql_databases', connection_id=connection_id)
         
-        # Probar la conexión a la base de datos seleccionada
+        # Probar la conexiÃ³n a la base de datos seleccionada
         connector = SQLServerConnector(
             connection.server,
             connection.username,
@@ -602,7 +680,7 @@ def select_database(request, connection_id):
             messages.error(request, f'No se pudo conectar a la base de datos {selected_database}')
             return redirect('automatizacion:list_sql_databases', connection_id=connection_id)
         
-        # Actualizar la conexión con la base de datos seleccionada
+        # Actualizar la conexiÃ³n con la base de datos seleccionada
         connection.selected_database = selected_database
         connection.save()
         
@@ -632,7 +710,7 @@ def list_sql_tables(request, connection_id):
         messages.warning(request, 'Debe seleccionar una base de datos primero')
         return redirect('automatizacion:list_sql_databases', connection_id=connection_id)
     
-    # Actualizar fecha de último uso
+    # Actualizar fecha de Ãºltimo uso
     connection.last_used = timezone.now()
     connection.save()
     
@@ -650,13 +728,13 @@ def list_sql_tables(request, connection_id):
     
     tables = connector.get_tables()
     
-    # Verificar que cada tabla tenga un full_name válido
+    # Verificar que cada tabla tenga un full_name vÃ¡lido
     for table in tables:
         if 'full_name' not in table or not table['full_name']:
             # Si no hay full_name, construirlo usando schema y name
             table['full_name'] = f"{table.get('schema', 'dbo')}.{table.get('name', '')}"
     
-    # Buscar o crear fuente de datos para esta conexión
+    # Buscar o crear fuente de datos para esta conexiÃ³n
     source, created = DataSource.objects.get_or_create(
         source_type='sql',
         connection=connection,
@@ -677,13 +755,13 @@ from .decorators import log_operation
 def list_sql_columns(request, connection_id, table_name):
     """Lista las columnas de una tabla SQL - SIN LOGGING INDIVIDUAL"""
     
-    # NO crear logging aquí - será creado solo en save_process al final del flujo
+    # NO crear logging aquÃ­ - serÃ¡ creado solo en save_process al final del flujo
     
     connection = get_object_or_404(DatabaseConnection, pk=connection_id)
     
     # Verificar que se haya seleccionado una base de datos
     if not connection.selected_database:
-        # NO registrar aquí - será manejado en save_process
+        # NO registrar aquÃ­ - serÃ¡ manejado en save_process
         messages.warning(request, 'Debe seleccionar una base de datos primero')
         return redirect('automatizacion:list_sql_databases', connection_id=connection_id)
     
@@ -696,10 +774,10 @@ def list_sql_columns(request, connection_id, table_name):
             schema = 'dbo'  # Esquema por defecto
             table = table_name
             
-        # Verificar que tengamos valores válidos
+        # Verificar que tengamos valores vÃ¡lidos
         if not schema or not table:
-            # NO registrar aquí - será manejado en save_process
-            messages.error(request, 'Nombre de tabla inválido. Formato esperado: [esquema].[tabla]')
+            # NO registrar aquÃ­ - serÃ¡ manejado en save_process
+            messages.error(request, 'Nombre de tabla invÃ¡lido. Formato esperado: [esquema].[tabla]')
             return redirect('automatizacion:list_sql_tables', connection_id=connection_id)
         
         connector = SQLServerConnector(
@@ -711,18 +789,18 @@ def list_sql_columns(request, connection_id, table_name):
         
         # Conectar a la base de datos seleccionada
         if not connector.select_database(connection.selected_database):
-            # NO registrar aquí - será manejado en save_process
+            # NO registrar aquÃ­ - serÃ¡ manejado en save_process
             messages.error(request, f'No se pudo conectar a la base de datos {connection.selected_database}')
             return redirect('automatizacion:list_sql_databases', connection_id=connection_id)
     except Exception as e:
-        # NO registrar aquí - será manejado en save_process
+        # NO registrar aquÃ­ - serÃ¡ manejado en save_process
         messages.error(request, f'Error al procesar el nombre de la tabla: {str(e)}')
         return redirect('automatizacion:list_sql_tables', connection_id=connection_id)
     
     columns = connector.get_table_columns(schema, table)
     preview = connector.get_table_preview(schema, table)
     
-    # Buscar fuente de datos para esta conexión
+    # Buscar fuente de datos para esta conexiÃ³n
     source, created = DataSource.objects.get_or_create(
         source_type='sql',
         connection=connection,
@@ -739,7 +817,7 @@ def list_sql_columns(request, connection_id, table_name):
         'source': source
     }
     
-    # NO registrar aquí - será registrado en save_process al final del flujo
+    # NO registrar aquÃ­ - serÃ¡ registrado en save_process al final del flujo
     
     return render(request, 'automatizacion/list_sql_columns.html', context)
 
@@ -747,7 +825,7 @@ def list_sql_columns(request, connection_id, table_name):
 
 @csrf_exempt
 def save_process(request):
-    """Guarda un proceso de migración (endpoint AJAX)"""
+    """Guarda un proceso de migraciÃ³n (endpoint AJAX)"""
     if request.method != 'POST':
         return JsonResponse({'error': 'Solo se permiten solicitudes POST'}, status=405)
     
@@ -757,7 +835,7 @@ def save_process(request):
         # Obtener el nombre del proceso del frontend
         process_name = data.get('name', 'Proceso sin nombre')
         
-        # LOG DETALLADO PARA DEPURACIÓN
+        # LOG DETALLADO PARA DEPURACIÃ“N
         print(f"DEBUG: save_process llamado por usuario {request.user}")
         print(f"DEBUG: Datos recibidos: {data}")
         print(f"DEBUG: Nombre del proceso: '{process_name}'")
@@ -786,7 +864,7 @@ def save_process(request):
         # Obtener fuente de datos
         source = get_object_or_404(DataSource, pk=data.get('source_id'))
         
-        # Obtener acción en caso de duplicado (update_existing o create_new)
+        # Obtener acciÃ³n en caso de duplicado (update_existing o create_new)
         duplicate_action = data.get('duplicate_action', None)
         
         # Crear o actualizar proceso
@@ -797,7 +875,7 @@ def save_process(request):
             
         process_name = data.get('name')
         
-        print(f"DEBUG: ===== ANÁLISIS DE DUPLICADOS =====")
+        print(f"DEBUG: ===== ANÃLISIS DE DUPLICADOS =====")
         print(f"DEBUG: process_id recibido: {process_id} (tipo: {type(process_id)}, normalizado: {process_id is None})")
         print(f"DEBUG: process_name: '{process_name}'")
         print(f"DEBUG: duplicate_action: {duplicate_action}")
@@ -806,14 +884,14 @@ def save_process(request):
         existing_process = MigrationProcess.objects.filter(name=process_name).first()
         
         if existing_process:
-            print(f"DEBUG: ✓ Proceso existente encontrado: ID {existing_process.id}, nombre: '{existing_process.name}'")
+            print(f"DEBUG: âœ“ Proceso existente encontrado: ID {existing_process.id}, nombre: '{existing_process.name}'")
         else:
-            print(f"DEBUG: ✗ No se encontró proceso existente con nombre '{process_name}'")
+            print(f"DEBUG: âœ— No se encontrÃ³ proceso existente con nombre '{process_name}'")
         
-        # Si existe un proceso con el mismo nombre y NO hay process_id y NO hay acción explícita
+        # Si existe un proceso con el mismo nombre y NO hay process_id y NO hay acciÃ³n explÃ­cita
         # Esto significa: usuario intenta crear nuevo proceso con nombre duplicado
         if existing_process and process_id is None and not duplicate_action:
-            print(f"DEBUG: ✓✓✓ CONDICIONES CUMPLIDAS - Devolviendo duplicate_detected=True")
+            print(f"DEBUG: âœ“âœ“âœ“ CONDICIONES CUMPLIDAS - Devolviendo duplicate_detected=True")
             print(f"DEBUG: - existing_process: {existing_process.id}")
             print(f"DEBUG: - process_id is None: {process_id is None}")
             print(f"DEBUG: - duplicate_action: {duplicate_action}")
@@ -825,21 +903,21 @@ def save_process(request):
             }, status=200)
         else:
             if existing_process:
-                print(f"DEBUG: ✗ No se muestra modal porque:")
+                print(f"DEBUG: âœ— No se muestra modal porque:")
                 print(f"DEBUG:   - process_id existe: {bool(process_id)}")
                 print(f"DEBUG:   - duplicate_action existe: {bool(duplicate_action)}")
         
-        # Manejar la acción del usuario sobre el duplicado
+        # Manejar la acciÃ³n del usuario sobre el duplicado
         if existing_process and duplicate_action == 'update_existing':
-            print(f"DEBUG: Usuario eligió ACTUALIZAR proceso existente: '{process_name}' (ID: {existing_process.id})")
+            print(f"DEBUG: Usuario eligiÃ³ ACTUALIZAR proceso existente: '{process_name}' (ID: {existing_process.id})")
             process = existing_process
             process.description = data.get('description', process.description)
             
         elif process_id:
-            # Actualización de proceso específico por ID
+            # ActualizaciÃ³n de proceso especÃ­fico por ID
             try:
                 process = MigrationProcess.objects.get(pk=process_id)
-                print(f"DEBUG: Proceso encontrado para actualización: ID {process.id}, nombre actual: '{process.name}'")
+                print(f"DEBUG: Proceso encontrado para actualizaciÃ³n: ID {process.id}, nombre actual: '{process.name}'")
                 
                 # Verificar si el nuevo nombre ya existe en otro proceso
                 other_process = MigrationProcess.objects.filter(name=process_name).exclude(id=process.id).first()
@@ -870,8 +948,8 @@ def save_process(request):
             # Crear nuevo proceso
             print(f"DEBUG: Creando nuevo proceso con nombre base: '{process_name}'")
             
-            # Si el usuario eligió "crear nuevo" y ya existe un proceso con ese nombre,
-            # generar un nombre único agregando un sufijo numérico
+            # Si el usuario eligiÃ³ "crear nuevo" y ya existe un proceso con ese nombre,
+            # generar un nombre Ãºnico agregando un sufijo numÃ©rico
             if duplicate_action == 'create_new' and existing_process:
                 base_name = process_name
                 counter = 2
@@ -886,28 +964,28 @@ def save_process(request):
                 source=source
             )
         
-        # Guardar detalles según tipo de fuente
+        # Guardar detalles segÃºn tipo de fuente
         if source.source_type in ['excel', 'csv']:
             process.selected_sheets = data.get('selected_sheets')
         elif source.source_type == 'sql':
             process.selected_tables = data.get('selected_tables')
         
-        # ✅ IMPORTANTE: Actualizar SIEMPRE estos campos, incluso si es un proceso existente
+        # âœ… IMPORTANTE: Actualizar SIEMPRE estos campos, incluso si es un proceso existente
         process.selected_columns = data.get('selected_columns')
         process.column_mappings = data.get('column_mappings')  # Guardar mapeos de columnas personalizadas
         process.target_db_name = data.get('target_db', 'DestinoAutomatizacion')
         
         print(f"\n{'='*80}")
-        print(f"💾 DEBUG - Guardando proceso: {process.name}")
-        print(f"📋 Tablas seleccionadas: {process.selected_tables}")
-        print(f"📋 Columnas seleccionadas: {process.selected_columns}")
-        print(f"📋 Mapeos de columnas: {process.column_mappings}")
+        print(f"ðŸ’¾ DEBUG - Guardando proceso: {process.name}")
+        print(f"ðŸ“‹ Tablas seleccionadas: {process.selected_tables}")
+        print(f"ðŸ“‹ Columnas seleccionadas: {process.selected_columns}")
+        print(f"ðŸ“‹ Mapeos de columnas: {process.column_mappings}")
         print(f"{'='*80}\n")
         
         process.save()
         
-        # Finalizar logger con éxito
-        print(f"DEBUG: Finalizando logger con éxito para proceso Django ID {process.id}")
+        # Finalizar logger con Ã©xito
+        print(f"DEBUG: Finalizando logger con Ã©xito para proceso Django ID {process.id}")
         print(f"DEBUG: Proceso guardado: {process.name} (Source: {process.source.name})")
         finalizar_proceso_web(
             tracker,
@@ -946,7 +1024,7 @@ def save_process(request):
 
 @csrf_exempt
 def save_excel_multi_process(request):
-    """Guarda un proceso de Excel multi-hoja con selección independiente de columnas (endpoint AJAX)"""
+    """Guarda un proceso de Excel multi-hoja con selecciÃ³n independiente de columnas (endpoint AJAX)"""
     if request.method != 'POST':
         return JsonResponse({'error': 'Solo se permiten solicitudes POST'}, status=405)
     
@@ -956,7 +1034,7 @@ def save_excel_multi_process(request):
         # Obtener el nombre del proceso del frontend
         process_name = data.get('name', 'Proceso Excel sin nombre')
         
-        # LOG DETALLADO PARA DEPURACIÓN
+        # LOG DETALLADO PARA DEPURACIÃ“N
         print(f"DEBUG: save_excel_multi_process llamado por usuario {request.user}")
         print(f"DEBUG: Datos recibidos: {data}")
         print(f"DEBUG: Nombre del proceso: '{process_name}'")
@@ -998,13 +1076,27 @@ def save_excel_multi_process(request):
         selected_sheets = data.get('selected_sheets')
         selected_columns = data.get('selected_columns')
         
+        # ðŸ› DEBUG: Verificar estructura de selected_columns
+        print(f"\n{'='*80}")
+        print(f"ðŸ” DEBUG selected_columns recibido del frontend:")
+        print(f"{'='*80}")
+        print(f"Tipo: {type(selected_columns)}")
+        for sheet, columns in selected_columns.items():
+            print(f"\nHoja: '{sheet}'")
+            print(f"  Tipo de columns: {type(columns)}")
+            print(f"  Cantidad de columns: {len(columns)}")
+            if columns:
+                print(f"  Primer elemento: {columns[0]}")
+                print(f"  Tipo del primer elemento: {type(columns[0])}")
+        print(f"{'='*80}\n")
+        
         for sheet in selected_sheets:
             if sheet not in selected_columns or not selected_columns[sheet]:
                 return JsonResponse({
                     'error': f'La hoja "{sheet}" no tiene columnas seleccionadas'
                 }, status=400)
         
-        # Obtener el ID del proceso si se está editando y la acción de duplicado
+        # Obtener el ID del proceso si se estÃ¡ editando y la acciÃ³n de duplicado
         process_id = data.get('process_id')
         duplicate_action = data.get('duplicate_action')
         
@@ -1019,17 +1111,17 @@ def save_excel_multi_process(request):
                 'message': f'Ya existe un proceso llamado "{process_name}"'
             }, status=200)
         
-        # Manejar la acción del usuario sobre el duplicado
+        # Manejar la acciÃ³n del usuario sobre el duplicado
         if existing_process and duplicate_action == 'update_existing':
-            print(f"DEBUG: Usuario eligió ACTUALIZAR proceso existente: '{process_name}' (ID: {existing_process.id})")
+            print(f"DEBUG: Usuario eligiÃ³ ACTUALIZAR proceso existente: '{process_name}' (ID: {existing_process.id})")
             process = existing_process
             process.description = data.get('description', process.description)
             
         elif process_id:
-            # Actualización de proceso específico por ID
+            # ActualizaciÃ³n de proceso especÃ­fico por ID
             try:
                 process = MigrationProcess.objects.get(pk=process_id)
-                print(f"DEBUG: Proceso encontrado para actualización: ID {process.id}, nombre actual: '{process.name}'")
+                print(f"DEBUG: Proceso encontrado para actualizaciÃ³n: ID {process.id}, nombre actual: '{process.name}'")
             except MigrationProcess.DoesNotExist:
                 return JsonResponse({'error': 'Proceso no encontrado'}, status=404)
             
@@ -1037,7 +1129,7 @@ def save_excel_multi_process(request):
             # Crear nuevo proceso (o cuando duplicate_action == 'create_new')
             print(f"DEBUG: Creando nuevo proceso Excel multi-hoja: '{process_name}'")
             
-            # Si el usuario eligió crear nuevo pero el nombre ya existe, agregar sufijo
+            # Si el usuario eligiÃ³ crear nuevo pero el nombre ya existe, agregar sufijo
             if duplicate_action == 'create_new' and existing_process:
                 base_name = process_name
                 counter = 2
@@ -1059,11 +1151,28 @@ def save_excel_multi_process(request):
         process.selected_columns = selected_columns
         process.column_mappings = data.get('column_mappings')  # Guardar mapeos de columnas personalizadas
         
+        # ðŸ†• NUEVO: Guardar mapeos de nombres de hojas personalizados
+        sheet_mappings = data.get('sheet_mappings')
+        if sheet_mappings:
+            # Validar que los nombres personalizados sean vÃ¡lidos (SQL-safe)
+            import re
+            for original_name, custom_name in sheet_mappings.items():
+                if not re.match(r'^[a-z0-9_]+$', custom_name):
+                    return JsonResponse({
+                        'error': f'Nombre de hoja invÃ¡lido: "{custom_name}". Solo se permiten letras minÃºsculas, nÃºmeros y guiones bajos.'
+                    }, status=400)
+            
+            # Guardar en column_mappings con clave especial '__sheet_names__'
+            if not process.column_mappings:
+                process.column_mappings = {}
+            process.column_mappings['__sheet_names__'] = sheet_mappings
+            print(f"DEBUG: Guardando mapeos de hojas: {sheet_mappings}")
+        
         process.save()
         print(f"DEBUG: Proceso Excel multi-hoja guardado exitosamente con ID: {process.id}")
         
-        # Finalizar logger con éxito
-        print(f"DEBUG: Finalizando logger con éxito para proceso Excel ID {process.id}")
+        # Finalizar logger con Ã©xito
+        print(f"DEBUG: Finalizando logger con Ã©xito para proceso Excel ID {process.id}")
         finalizar_proceso_web(
             tracker,
             usuario=request.user,
@@ -1101,14 +1210,14 @@ def save_excel_multi_process(request):
 
 @csrf_exempt
 def delete_connection(request, connection_id):
-    """Elimina una conexión guardada (endpoint AJAX)"""
+    """Elimina una conexiÃ³n guardada (endpoint AJAX)"""
     if request.method != 'POST':
         return JsonResponse({'error': 'Solo se permiten solicitudes POST'}, status=405)
     
     try:
         connection = get_object_or_404(DatabaseConnection, pk=connection_id)
         
-        # Eliminar también las fuentes de datos asociadas
+        # Eliminar tambiÃ©n las fuentes de datos asociadas
         DataSource.objects.filter(connection=connection).delete()
         
         connection_name = connection.name
@@ -1116,7 +1225,7 @@ def delete_connection(request, connection_id):
         
         return JsonResponse({
             'success': True,
-            'message': f'La conexión "{connection_name}" ha sido eliminada'
+            'message': f'La conexiÃ³n "{connection_name}" ha sido eliminada'
         })
     
     except Exception as e:
@@ -1131,7 +1240,7 @@ def edit_process(request, process_id):
         process.name = request.POST.get('name', process.name)
         process.description = request.POST.get('description', process.description)
         
-        # Actualizar campos específicos según el tipo de fuente
+        # Actualizar campos especÃ­ficos segÃºn el tipo de fuente
         if process.source.source_type in ['excel', 'csv']:
             # Para Excel/CSV, actualizar hojas/columnas seleccionadas
             if 'selected_sheets' in request.POST:
@@ -1169,37 +1278,37 @@ def edit_process(request, process_id):
         # Guardar cambios
         process.save()
         
-        # Crear log de modificación
+        # Crear log de modificaciÃ³n
         from .models import MigrationLog
         MigrationLog.log(
             process=process,
             stage='validation',
             message=f'Proceso modificado por usuario',
             level='info',
-            user=request.user.username if request.user.is_authenticated else 'anónimo'
+            user=request.user.username if request.user.is_authenticated else 'anÃ³nimo'
         )
         
         messages.success(request, f'El proceso "{process.name}" ha sido actualizado correctamente.')
         return redirect('automatizacion:view_process', process_id=process.id)
     
-    # GET - Mostrar formulario de edición
+    # GET - Mostrar formulario de ediciÃ³n
     context = {
         'process': process,
         'source': process.source
     }
     
-    # Obtener información específica según tipo de fuente
+    # Obtener informaciÃ³n especÃ­fica segÃºn tipo de fuente
     if process.source.source_type == 'excel':
-        # Para Excel, obtener información de hojas disponibles Y TODOS LOS CAMPOS ORIGINALES
+        # Para Excel, obtener informaciÃ³n de hojas disponibles Y TODOS LOS CAMPOS ORIGINALES
         context['file_path'] = process.source.file_path
         try:
-            from .utils import ExcelProcessor
+            from .legacy_utils import ExcelProcessor
             processor = ExcelProcessor(process.source.file_path)
             
             # Obtener todas las hojas disponibles
             context['available_sheets'] = processor.get_sheet_names()
             
-            # ✅ NUEVO: Obtener TODOS los campos originales de cada hoja
+            # âœ… NUEVO: Obtener TODOS los campos originales de cada hoja
             all_sheets_data = {}
             for sheet_name in context['available_sheets']:
                 columns = processor.get_sheet_columns(sheet_name)
@@ -1224,7 +1333,7 @@ def edit_process(request, process_id):
         context['file_path'] = process.source.file_path
         
     elif process.source.source_type == 'sql':
-        # Para SQL, obtener información de conexión
+        # Para SQL, obtener informaciÃ³n de conexiÃ³n
         context['connection'] = process.source.connection
         try:
             from .utils import DatabaseInspector
@@ -1243,7 +1352,7 @@ def edit_process(request, process_id):
 def load_process_columns(request, process_id):
     """Vista AJAX para cargar columnas de hojas de Excel seleccionadas"""
     if request.method != 'POST':
-        return JsonResponse({'error': 'Método no permitido'}, status=405)
+        return JsonResponse({'error': 'MÃ©todo no permitido'}, status=405)
     
     process = get_object_or_404(MigrationProcess, pk=process_id)
     
@@ -1258,7 +1367,7 @@ def load_process_columns(request, process_id):
         if not selected_sheets:
             return JsonResponse({'error': 'No se especificaron hojas'}, status=400)
         
-        from .utils import ExcelProcessor
+        from .legacy_utils import ExcelProcessor
         processor = ExcelProcessor(process.source.file_path)
         
         sheets_columns = {}
@@ -1278,3 +1387,115 @@ def load_process_columns(request, process_id):
         return JsonResponse({
             'error': f'Error cargando columnas: {str(e)}'
         }, status=500)
+
+
+# ==========================================
+# ðŸ†• NUEVAS FUNCIONES AJAX PARA VALIDACIÃ“N
+# ==========================================
+
+from django.views.decorators.http import require_http_methods
+
+
+@require_http_methods(["POST"])
+def validate_sheet_rename(request):
+    """
+    Endpoint AJAX para validar renombrado de hoja en tiempo real.
+    
+    POST /automatizacion/api/validate-sheet-rename/
+    Body: {
+        "original_name": "Hoja1",
+        "new_name": "ventas_2024",
+        "existing_names": ["productos", "clientes"]
+    }
+    
+    Response: {
+        "valid": true/false,
+        "normalized": "ventas_2024",
+        "error": "mensaje de error (si aplica)"
+    }
+    """
+    try:
+        data = json.loads(request.body)
+        new_name = data.get('new_name', '')
+        existing_names = data.get('existing_names', [])
+        
+        # Validar nombre usando el mÃ³dulo de validadores
+        is_valid, normalized, error = validate_sheet_name(new_name, existing_names)
+        
+        return JsonResponse({
+            'valid': is_valid,
+            'normalized': normalized,
+            'error': error
+        })
+    
+    except Exception as e:
+        logger.error(f"Error en validaciÃ³n de nombre: {e}", exc_info=True)
+        return JsonResponse({
+            'valid': False,
+            'error': f'Error interno: {str(e)}'
+        }, status=500)
+
+
+@require_http_methods(["POST"])
+def infer_column_types(request, source_id):
+    """
+    Endpoint AJAX para inferir tipos de columnas.
+    
+    POST /automatizacion/api/excel/<source_id>/infer-types/
+    Body: {
+        "sheet_name": "Hoja1",
+        "columns": ["edad", "nombre", "fecha_registro"]
+    }
+    
+    Response: {
+        "types": {
+            "edad": {
+                "sql_type": "INT",
+                "confidence": 1.0,
+                "nullable": false,
+                "default_value": "0",
+                "warnings": []
+            },
+            ...
+        }
+    }
+    """
+    try:
+        data_source = get_object_or_404(DataSource, pk=source_id)
+        data = json.loads(request.body)
+        sheet_name = data.get('sheet_name')
+        columns = data.get('columns', [])
+        
+        if not os.path.exists(data_source.file_path):
+            return JsonResponse({'error': 'Archivo no encontrado'}, status=404)
+        
+        # Leer hoja especÃ­fica con pandas
+        df = pd.read_excel(data_source.file_path, sheet_name=sheet_name)
+        
+        # Inferir tipos para cada columna solicitada
+        types_info = {}
+        for col in columns:
+            if col in df.columns:
+                # Usar la funciÃ³n infer_sql_type del mÃ³dulo validators
+                type_result = infer_sql_type(df[col])
+                types_info[col] = type_result
+        
+        return JsonResponse({'types': types_info})
+    
+    except Exception as e:
+        logger.error(f"Error al inferir tipos: {e}", exc_info=True)
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+def modern_view(request):
+    """Vista que usa la plantilla moderna de App_Django"""
+    # Obtener procesos guardados para mostrarlos
+    recent_processes = MigrationProcess.objects.all().order_by('-created_at')[:5]
+    saved_connections = DatabaseConnection.objects.all().order_by('-created_at')[:5]
+    
+    context = {
+        'recent_processes': recent_processes,
+        'saved_connections': saved_connections
+    }
+    return render(request, 'base.html', context)
+
